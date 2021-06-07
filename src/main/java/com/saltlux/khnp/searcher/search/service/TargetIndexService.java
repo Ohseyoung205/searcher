@@ -5,6 +5,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.GroupPrincipal;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.UserPrincipal;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -90,8 +97,10 @@ public class TargetIndexService {
 		String readLine = null ;
 		int lineNum = 0;
 		
-		String oriFilePath = "C:\\work\\convert" + File.separator + query;
-		String copyFilePath = "C:\\work\\convert" + File.separator + "index_"+query;
+//		String oriFilePath = "C:\\work\\convert" + File.separator + query;
+//		String copyFilePath = "C:\\work\\convert" + File.separator + "index_"+query;
+		String oriFilePath = "/opt/exotech/khnp-situation-center-dashboard/public/resources/97478166a232405696dc8c0c28f1122e" + File.separator + query;
+		String copyFilePath = "/opt/exotech/khnp-situation-center-dashboard/public/resources/97478166a232405696dc8c0c28f1122e" + File.separator + "index_"+query;
 		try{
 			File file = new File(oriFilePath);
 			BufferedReader bufReader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "utf-8"));
@@ -105,14 +114,14 @@ public class TargetIndexService {
 			for( Map.Entry<String, Map<String, String>> tEm : targetMap.entrySet() ){
 				if("index".equals(tEm.getValue().get("indexgb"))) {
 					if(!"".equals(tEm.getValue().get("level"))) {
-						if(!htmlMap.get(tEm.getValue().get("position").split("-")[0]).contains("<div class='#hilight")) {
-							htmlMap.put(tEm.getValue().get("position").split("-")[0], "<div class='#hilight-"+tEm.getValue().get("position").split("-")[0]+"'>"+htmlMap.get(tEm.getValue().get("position").split("-")[0]));
+						if(!htmlMap.get(tEm.getValue().get("position").split("-")[0]).contains("<div class='hilight")) {
+							htmlMap.put(tEm.getValue().get("position").split("-")[0], "<div class='hilight-"+tEm.getValue().get("position").split("-")[0]+"'>"+htmlMap.get(tEm.getValue().get("position").split("-")[0]));
 							htmlMap.put(tEm.getValue().get("position").split("-")[1], htmlMap.get(tEm.getValue().get("position").split("-")[1])+"</div>");
 						}
 					}
 				}else{
-					if(!htmlMap.get(tEm.getValue().get("position").split("-")[0]).contains("<div class='#hilight")) {
-						htmlMap.put(tEm.getValue().get("position").split("-")[0], "<div class='#hilight-"+tEm.getValue().get("position").split("-")[0]+"'>"+htmlMap.get(tEm.getValue().get("position").split("-")[0]));
+					if(!htmlMap.get(tEm.getValue().get("position").split("-")[0]).contains("<div class='hilight")) {
+						htmlMap.put(tEm.getValue().get("position").split("-")[0], "<div class='hilight-"+tEm.getValue().get("position").split("-")[0]+"'>"+htmlMap.get(tEm.getValue().get("position").split("-")[0]));
 						htmlMap.put(tEm.getValue().get("position").split("-")[1], htmlMap.get(tEm.getValue().get("position").split("-")[1])+"</div>");
 					}
 				}
@@ -121,7 +130,7 @@ public class TargetIndexService {
 				if("target".equals(tEl.getValue().get("indexgb"))) {
 					String tmpTitle = tEl.getValue().get("title1");
 					for( Map.Entry<String, String> hElem : htmlMap.entrySet() ){
-						if(!hElem.getValue().contains("<div class='#hilight")) {
+						if(!hElem.getValue().contains("<div class='hilight")) {
 							if(hElem.getValue().contains(tmpTitle)) {
 								String tmpHtml = "<a href=\"javascript:void(0);\" onclick=\"openCall('"+tmpTitle+"')\">"+tmpTitle+"</a>";
 								htmlMap.put(hElem.getKey(), hElem.getValue().replaceAll(tmpTitle, tmpHtml));
@@ -133,11 +142,21 @@ public class TargetIndexService {
 			
 			//############### htm indexing 작업 끝 ###################
 			File copyFile = new File(copyFilePath);
+
 			FileOutputStream fos = new FileOutputStream(copyFile); //복사할파일
 			for( Map.Entry<String, String> elem : htmlMap.entrySet() ){
 				fos.write(elem.getValue().getBytes());
 		    }
 			fos.close();
+			
+			Path filePath = Paths.get(copyFilePath);
+			//############### 파일 소유자 변경 ###############
+			UserPrincipal hostUid = filePath.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByName("saltlux");
+			Files.setOwner(filePath, hostUid);
+			//############### 파일 그룹 변경 ################
+			GroupPrincipal group =filePath.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByGroupName("saltlux");
+			Files.getFileAttributeView(filePath, PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS).setGroup(group);
+			
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
