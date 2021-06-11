@@ -15,7 +15,7 @@ public class TermController {
     @Autowired
     TermSearchService termSearchService;
 
-    @GetMapping("/search")  // 용어검색 API -- offset, limit 필수
+    @GetMapping("/search")  // 용어검색 API
     public CommonResponseVo termSearch(TermSearchRequest requests) {
         return new CommonResponseVo(termSearchService.termSearch(requests));
     }
