@@ -17,7 +17,7 @@ public class ExcelHelper {
 
 
   public static ByteArrayInputStream searchLogsToExcel(List<SearchLog> searchLogs) {
-    String[] HEADERs = { "log_id", "log_keyword", "create_dt", "client_ip" };
+    String[] HEADERs = {"log_keyword", "create_dt", "client_ip" };
     String SHEET = "searchLogs";
     try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream();) {
       Sheet sheet = workbook.createSheet(SHEET);
@@ -34,10 +34,9 @@ public class ExcelHelper {
       for (SearchLog searchLog : searchLogs) {
         Row row = sheet.createRow(rowIdx++);
 
-        row.createCell(0).setCellValue(searchLog.getLogId());
-        row.createCell(1).setCellValue(searchLog.getLogKeyword());
-        row.createCell(2).setCellValue(searchLog.getCreateDt());
-        row.createCell(3).setCellValue(searchLog.getClientIp());
+        row.createCell(0).setCellValue(searchLog.getLogKeyword());
+        row.createCell(1).setCellValue(searchLog.getCreateDt());
+        row.createCell(2).setCellValue(searchLog.getClientIp());
       }
 
       workbook.write(out);
