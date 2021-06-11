@@ -14,13 +14,18 @@ import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.UserPrincipal;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.saltlux.dor.api.IN2FacetSearcher;
 import com.saltlux.dor.api.IN2StdSearcher;
+import com.saltlux.dor.api.common.IN2FacetResult;
 import com.saltlux.dor.api.common.SearchObject;
 import com.saltlux.dor.api.common.query.IN2ParseQuery;
 import com.saltlux.dor.api.common.query.IN2Query;
@@ -40,20 +45,25 @@ public class TargetIndexService {
 	@Value("${in2.dor.index.name7}")
 	private String index7;
 	
-	private SearchObject init(SearchObject searcher){
+	@Value("${htm.filepath1}")
+	private String htmPath;
+	
+	private SearchObject init(SearchObject searcher, String gb){
 	    searcher.setServer(host, port);
-        searcher.addIndex(index6);
-        searcher.addIndex(index7);
-	        
+	    if("".equals(gb)) {
+	    	searcher.addIndex(index6);
+	        searcher.addIndex(index7);
+	    }else {
+	    	searcher.addIndex(index6);
+	    }
 	    return searcher;
 	}
 	
 	public void targetIndex(String query) throws Exception{
 		//############### 타겟 색인 불러오기 ###################
 		IN2StdSearcher searcher = new IN2StdSearcher();
-		init(searcher);
-		
-		System.out.println("query ::"+query);
+		init(searcher, "");
+
 		if(StringUtils.isNotBlank(query)){	
 			searcher.setQuery(new IN2ParseQuery("FILENM", query.trim(), IN2StdSearcher.TOKENIZER_KOR_BIGRAM));
 		}else {
@@ -71,7 +81,6 @@ public class TargetIndexService {
 		searcher.setReturnPositionCount(0, 10000);
         
 		searcher.addReturnField(new String[]{"INDEXGB","TITLE1","TITLE2","TITLE3","TITLE4","TITLE4_1","NUMBER","LEVEL","POSITION","FILENM"});
-        
         if(!searcher.searchDocument())	//검색 요청
             throw new RuntimeException(searcher.getLastErrorMessage());
     	
@@ -92,15 +101,43 @@ public class TargetIndexService {
 
     		targetMap.put(i+"",map);
         }
+        final String fieldName = "TOKENTITLE";
+        Map<String, Map<String, String>> facetMap = new LinkedHashMap<String, Map<String, String>>();
+        IN2FacetSearcher facetSearcher = new IN2FacetSearcher();
+        facetSearcher.setServer(host, port);
+        facetSearcher.newQuery();
+        facetSearcher.addIndex(index6);
+
+        if(StringUtils.isNotBlank(query)){	
+        	facetSearcher.setQuery(new IN2ParseQuery("FILENM", query.trim(), IN2StdSearcher.TOKENIZER_KOR_BIGRAM));
+		}else {
+			facetSearcher.setQuery(IN2Query.MatchingAllDocQuery()); //쿼리가 존재하지 않음
+		}
+
+        facetSearcher.addSimpleFacet(fieldName, 1000);
+        if (!facetSearcher.searchDocument()) {
+            throw new RuntimeException(facetSearcher.getLastErrorMessage());
+        }
+
+        List<IN2FacetResult.LabelAndCount> root = facetSearcher.getFacetResult(fieldName).getRoot();
         
+        for(int i=0; i<root.size();i++) {
+        	HashMap<String, String> fMap = new HashMap<>();
+        	fMap.put("tokentitle", root.get(i).label);
+        	facetMap.put(i+"",fMap);
+        }
+        
+        Matcher m;
+	    Pattern ptns1 = Pattern.compile("[가-힣]</SPAN> <SPAN STYLE=''>[0-9.]{2,8}");
+	    
 		HashMap<String, String> htmlMap = new LinkedHashMap<>();
 		String readLine = null ;
 		int lineNum = 0;
 		
 //		String oriFilePath = "C:\\work\\convert" + File.separator + query;
 //		String copyFilePath = "C:\\work\\convert" + File.separator + "index_"+query;
-		String oriFilePath = "/opt/exotech/khnp-situation-center-dashboard/public/resources/97478166a232405696dc8c0c28f1122e" + File.separator + query;
-		String copyFilePath = "/opt/exotech/khnp-situation-center-dashboard/public/resources/97478166a232405696dc8c0c28f1122e" + File.separator + "index_"+query;
+		String oriFilePath = htmPath + File.separator + query;
+		String copyFilePath = htmPath + File.separator + "index_"+query;
 		try{
 			File file = new File(oriFilePath);
 			BufferedReader bufReader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "utf-8"));
@@ -126,16 +163,22 @@ public class TargetIndexService {
 					}
 				}
 		    }
-			for( Map.Entry<String, Map<String, String>> tEl : targetMap.entrySet() ){
-				if("target".equals(tEl.getValue().get("indexgb"))) {
-					String tmpTitle = tEl.getValue().get("title1");
-					for( Map.Entry<String, String> hElem : htmlMap.entrySet() ){
-						if(!hElem.getValue().contains("<div class='hilight")) {
-							if(hElem.getValue().contains(tmpTitle)) {
-								String tmpHtml = "<a href=\"javascript:void(0);\" onclick=\"openCall('"+tmpTitle+"')\">"+tmpTitle+"</a>";
-								htmlMap.put(hElem.getKey(), hElem.getValue().replaceAll(tmpTitle, tmpHtml));
-							}
-						}
+			//</SPAN> <SPAN STYLE=''>을 ""로 치환
+			for( Map.Entry<String, String> hElem : htmlMap.entrySet() ){
+				m = ptns1.matcher(hElem.getValue());
+				if(m.find()) {
+					htmlMap.put(hElem.getKey(), hElem.getValue().replaceAll("</SPAN> <SPAN STYLE=''>", ""));
+				}
+			}
+			
+			
+			for( Map.Entry<String, Map<String, String>> tEl : facetMap.entrySet() ){
+				String tmpTitle = tEl.getValue().get("tokentitle");
+				for( Map.Entry<String, String> hElem : htmlMap.entrySet() ){
+					String tmpHtml = "<a href=\"javascript:void(0);\" onclick=\"openCall('"+tmpTitle+"')\">"+tmpTitle+"</a>";
+					htmlMap.put(hElem.getKey(), hElem.getValue().replaceAll(tmpTitle, tmpHtml));
+					if("운전제한조건 3.1.4".equals(tmpTitle)) {
+						htmlMap.put(hElem.getKey(), hElem.getValue().replaceAll("운전제한조건3.1.4", tmpHtml));
 					}
 				}
 			}

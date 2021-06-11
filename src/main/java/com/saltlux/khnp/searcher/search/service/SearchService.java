@@ -45,10 +45,12 @@ public class SearchService {
         searcher.setServer(host, port);
         if("target".equals(gb)) {
         	searcher.addIndex(index6);
+        }else if("table".equals(gb)){
+        	searcher.addIndex(index7);
         }else {
+        	searcher.addIndex(index6);
         	searcher.addIndex(index7);
         }
-        
         return searcher;
     }
     
@@ -69,6 +71,10 @@ public class SearchService {
             		bQuery.add(new IN2ParseQuery(CONTENTS.fieldName, query, CONTENTS.analyzer), IN2Query.OR);
             	}
             }
+            if("".equals(requests.getFilter().get(0).getFilterTerm())) {
+            	bQuery.add(new IN2ParseQuery(CONTENTS.fieldName, requests.getFilter().get(0).getFilterTerm(), CONTENTS.analyzer), IN2Query.OR);
+            }
+            
             searcher.setQuery(bQuery);
         }else{
             searcher.setQuery(IN2Query.MatchingAllDocQuery());
@@ -97,10 +103,23 @@ public class SearchService {
             throw new RuntimeException(searcher.getLastErrorMessage());
         
         List<HashMap<String, String>> documents = new ArrayList<>();
+        String strSplit = "";
         for (int i = 0; i < searcher.getDocumentCount(); i++) {
             HashMap<String, String> map = new HashMap<>();
             for (SearchRequests.Return field : requests.getReturns()) {
-            	map.put(field.getReturnField(), searcher.getValueInDocument(i, field.getReturnField().toUpperCase()));
+            	if("number".equals(field.getReturnField())) {
+            		strSplit = searcher.getValueInDocument(i, "FILENM").replaceAll("htm", "");
+            		if("".equals(searcher.getValueInDocument(i, field.getReturnField().toUpperCase()))) {
+            			map.put("rnumber", searcher.getValueInDocument(i, field.getReturnField().toUpperCase()));
+            			map.put(field.getReturnField(), strSplit+"0");
+            		}else {
+            			map.put("rnumber", searcher.getValueInDocument(i, field.getReturnField().toUpperCase()));
+            			map.put(field.getReturnField(), strSplit+searcher.getValueInDocument(i, field.getReturnField().toUpperCase()));
+            		}
+            	}else {
+            		map.put(field.getReturnField(), searcher.getValueInDocument(i, field.getReturnField().toUpperCase()));
+            	}
+            	
             }
             documents.add(map);
         }
@@ -117,7 +136,7 @@ public class SearchService {
      */
     public IntegrationSearchResult hierarchySearch(String plant, String query, boolean inferred ){
     	IN2StdSearcher searcher = new IN2StdSearcher();
-    	init(searcher, "");
+    	init(searcher, "table");
     	
     	if(StringUtils.isNotBlank(query)){
     		IN2BooleanQuery bQuery = new IN2BooleanQuery();
