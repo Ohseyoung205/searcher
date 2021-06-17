@@ -17,5 +17,9 @@ public interface CustomDictRepository extends JpaRepository<CustomDict, Long> {
     @Query("select d from CustomDict d where d.wordDiv = :wordDiv and " +
             "concat(d.mainWord, d.subWord) like concat('%', :keyword, '%')")
     List<CustomDict> findByWordDivExtra(@Param("wordDiv")String wordDiv, @Param("keyword")String keyword);
+    
+ // 불용어 조회
+    @Query("select d.mainWord from CustomDict d where d.wordDiv = 'B' and d.useYn = 'Y'")
+    List<String> findByCustomDictList();
 
 }

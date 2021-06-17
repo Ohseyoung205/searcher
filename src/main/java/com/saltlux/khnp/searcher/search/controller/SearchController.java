@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,9 +22,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.saltlux.khnp.searcher.common.CommonResponseVo;
 import com.saltlux.khnp.searcher.search.service.BrokerService;
+import com.saltlux.khnp.searcher.search.service.SearchLogService;
 import com.saltlux.khnp.searcher.search.service.SearchService;
 import com.saltlux.khnp.searcher.search.service.TargetIndexService;
 import com.saltlux.khnp.searcher.search.vo.SearchRequests;
+import com.saltlux.khnp.searcher.search.vo.SearchVo;
 
 
 @RestController
@@ -37,6 +40,9 @@ public class SearchController {
     
     @Autowired
     TargetIndexService targetIndexService;
+    
+    @Autowired
+    SearchLogService searchLogService;
 
 
     @PostMapping("/search")
@@ -66,6 +72,13 @@ public class SearchController {
     @CrossOrigin(origins="*", allowedHeaders="*")
     public void targetIndex(@RequestParam("query") String query) throws Exception{
     	targetIndexService.targetIndex(query);
+    }
+    
+    @GetMapping("/wordCloud")
+    @CrossOrigin(origins="*", allowedHeaders="*")
+    public CommonResponseVo wordCloud(SearchVo searchVo) throws Exception{
+    	
+    	return new CommonResponseVo(searchLogService.wordCloud(searchVo));
     }
     
     @ResponseBody
