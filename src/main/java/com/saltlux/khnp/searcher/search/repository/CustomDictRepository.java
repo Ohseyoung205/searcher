@@ -3,6 +3,7 @@ package com.saltlux.khnp.searcher.search.repository;
 import com.saltlux.khnp.searcher.search.model.CustomDict;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -15,8 +16,6 @@ public interface CustomDictRepository extends JpaRepository<CustomDict, Long> {
     // 동의어사전 field 전체 검색
     @Query("select d from CustomDict d where d.wordDiv = :wordDiv and " +
             "concat(d.mainWord, d.subWord) like concat('%', :keyword, '%')")
-    List<CustomDict> findByWordDivExtra(String wordDiv, String keyword);
-
-
+    List<CustomDict> findByWordDivExtra(@Param("wordDiv")String wordDiv, @Param("keyword")String keyword);
 
 }

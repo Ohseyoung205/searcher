@@ -4,6 +4,7 @@ import com.saltlux.khnp.searcher.search.model.TermsDict;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -26,6 +27,6 @@ public interface TermsDictRepository extends JpaRepository<TermsDict, Long>, Jpa
     // field 전체 검색
     @Query("select d from TermsDict d where d.termsDiv = :termsDiv and " +
             "concat(d.termsKoName, d.termsEaName, d.termsContents, d.termsAbr) like concat('%', :keyword, '%')")
-    List<TermsDict> findByTermsDivExtra(String termsDiv, String keyword);
+    List<TermsDict> findByTermsDivExtra(@Param("termsDiv")String termsDiv, @Param("keyword")String keyword);
 
 }
