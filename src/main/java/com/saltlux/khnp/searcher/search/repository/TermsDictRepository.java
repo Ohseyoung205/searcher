@@ -10,23 +10,30 @@ import java.util.List;
 
 public interface TermsDictRepository extends JpaRepository<TermsDict, Long>, JpaSpecificationExecutor<TermsDict> {
 
-    // 용어집 이름이 전체일 때
-    List<TermsDict> findByTermsKoNameContaining(String termsKoName);
-    List<TermsDict> findByTermsEaNameContaining(String termsEaName);
-    List<TermsDict> findByTermsContentsContaining(String termsContent);
-    List<TermsDict> findByTermsAbrContaining(String abr);
-    List<TermsDict> findByTermsKoNameContainingOrTermsEaNameContainingOrTermsContentsContainingOrTermsAbrContaining(String termsKoName, String termsEaName, String termsContents, String termsAbr);
+    // 용어사전 전체 검색 recYn= "Y"
+    List<TermsDict> findByRecYnEquals(String recYn);
 
+    // 용어집 이름이 전체일 때 recYn= "Y"
+    List<TermsDict> findByTermsKoNameContainingAndRecYnEquals(String termsKoName, String recYn);
+    List<TermsDict> findByTermsEaNameContainingAndRecYnEquals(String termsEaName, String recYn);
+    List<TermsDict> findByTermsContentsContainingAndRecYnEquals(String termsContent, String recYn);
+    List<TermsDict> findByTermsAbrContainingAndRecYnEquals(String abr, String recYn);
 
-    // 용어집이름이 들어올 때
-    List<TermsDict> findByTermsDivEqualsAndTermsKoNameContaining(String termsDiv, String termsKoName);
-    List<TermsDict> findByTermsDivEqualsAndTermsEaNameContaining(String termsDiv, String termsEaName);
-    List<TermsDict> findByTermsDivEqualsAndTermsContentsContaining(String termsDiv, String termsContent);
-    List<TermsDict> findByTermsDivEqualsAndTermsAbrContaining(String termsDiv, String abr);
-
-    // field 전체 검색
-    @Query("select d from TermsDict d where d.termsDiv = :termsDiv and " +
+    //용어집 이름이 전체일 때 field 전체 검색 recYn= "Y"
+    @Query("select d from TermsDict d where d.recYn = :recYn and " +
             "concat(d.termsKoName, d.termsEaName, d.termsContents, d.termsAbr) like concat('%', :keyword, '%')")
-    List<TermsDict> findByTermsDivExtra(@Param("termsDiv")String termsDiv, @Param("keyword")String keyword);
+    List<TermsDict> findByRecYnEqualsYAndKeyword(@Param("recYn")String recYn, @Param("keyword")String keyword);
+
+
+    //용어집 이름이 있을 때 recYn= "Y"
+    List<TermsDict> findByTermsDivEqualsAndTermsKoNameContainingAndRecYnEquals(String termsDiv, String termsKoName, String recYn);
+    List<TermsDict> findByTermsDivEqualsAndTermsEaNameContainingAndRecYnEquals(String termsDiv, String termsEaName, String recYn);
+    List<TermsDict> findByTermsDivEqualsAndTermsContentsContainingAndRecYnEquals(String termsDiv, String termsContent, String recYn);
+    List<TermsDict> findByTermsDivEqualsAndTermsAbrContainingAndRecYnEquals(String termsDiv, String abr, String recYn);
+
+    // 용어집이름이 있을 때 field 전체 검색 recYn= "Y"
+    @Query("select d from TermsDict d where d.termsDiv = :termsDiv and " +
+            "concat(d.termsKoName, d.termsEaName, d.termsContents, d.termsAbr) like concat('%', :keyword, '%')and d.recYn=:recYn")
+    List<TermsDict> findByTermsDivExtra(@Param("termsDiv")String termsDiv, @Param("keyword")String keyword, @Param("recYn")String recYn);
 
 }

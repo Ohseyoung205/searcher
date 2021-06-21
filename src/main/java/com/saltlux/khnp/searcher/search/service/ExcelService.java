@@ -50,21 +50,23 @@ public class ExcelService {
   }
 
   public ByteArrayInputStream loadSynonymAll() {
-    String wordDiv = "D"; //wordDiv 는 D는 대표어
-    List<CustomDict> customDicts = customDictRepository.findByWordDivEquals(wordDiv);
+    String wordDiv = "D"; //wordDiv 는 D는 동의어
+    String recYn = "Y";
+    List<CustomDict> customDicts = customDictRepository.findByWordDivEqualsAndRecYnEquals(wordDiv,recYn);
     ByteArrayInputStream in = ExcelHelper.customDictToExcel(customDicts);
     return in;
   }
 
   public ByteArrayInputStream loadSynonymByKeyword(String field, String keyword) {
-    String wordDiv = "D"; //wordDiv 는 D는 대표어
+    String wordDiv = "D"; //wordDiv 는 D는 동의어
+    String recYn = "Y";
     List<CustomDict> customDicts =  new ArrayList<>();;
     if (field.equals("mainWord")) {
-      customDicts = customDictRepository.findByWordDivEqualsAndMainWordContaining(wordDiv, keyword);
+      customDicts = customDictRepository.findByWordDivEqualsAndMainWordContainingAndRecYnEquals(wordDiv, keyword, recYn);
     } else if(field.equals("subWord")) {
-      customDicts = customDictRepository.findByWordDivEqualsAndSubWordContaining(wordDiv, keyword);
+      customDicts = customDictRepository.findByWordDivEqualsAndSubWordContainingAndRecYnEquals(wordDiv, keyword, recYn);
     } else if(field.equals("")) {
-      customDicts = customDictRepository.findByWordDivExtra(wordDiv,keyword);
+      customDicts = customDictRepository.findByWordDivExtra(wordDiv,keyword, recYn);
     }
     ByteArrayInputStream in = ExcelHelper.customDictToExcel(customDicts);
     return in;
@@ -72,53 +74,60 @@ public class ExcelService {
 
   public ByteArrayInputStream loadStopWordAll() {
     String wordDiv = "B"; //wordDiv 는 B는 불용어
-    List<CustomDict> customDicts = customDictRepository.findByWordDivEquals(wordDiv);
+    String recYn = "Y";
+    List<CustomDict> customDicts = customDictRepository.findByWordDivEqualsAndRecYnEquals(wordDiv,recYn);
     ByteArrayInputStream in = ExcelHelper.stopwordsToExcel(customDicts);
     return in;
   }
 
   public ByteArrayInputStream loadStopWordByKeyword(String keyword) { //  불용어찾기
     String wordDiv = "B"; //wordDiv 는 B는 불용어
-    List<CustomDict> customDicts = customDictRepository.findByWordDivEqualsAndMainWordContaining(wordDiv, keyword);
+    String recYn = "Y";
+    List<CustomDict> customDicts = customDictRepository.findByWordDivEqualsAndMainWordContainingAndRecYnEquals(wordDiv, keyword, recYn);
     ByteArrayInputStream in = ExcelHelper.stopwordsToExcel(customDicts);
     return in;
   }
 
   public ByteArrayInputStream loadTermsDictAll() {
-    List<TermsDict> termsDicts = termsDictRepository.findAll();
+    String recYn = "Y";
+    List<TermsDict> termsDicts = termsDictRepository.findByRecYnEquals(recYn);
     ByteArrayInputStream in = ExcelHelper.termsDictToExcel(termsDicts);
     return in;
   }
 
+  //용어집 이름이 있을 때
   public ByteArrayInputStream loadTermsDictByKeyword(String source, String field, String keyword) {
+    String recYn = "Y";
     List<TermsDict> termsDicts =  new ArrayList<>();;
     if (field.equals("koName")) {
-      termsDicts = termsDictRepository.findByTermsDivEqualsAndTermsKoNameContaining(source, keyword);
+      termsDicts = termsDictRepository.findByTermsDivEqualsAndTermsKoNameContainingAndRecYnEquals(source, keyword, recYn);
     } else if(field.equals("eaName")) {
-      termsDicts = termsDictRepository.findByTermsDivEqualsAndTermsEaNameContaining(source,keyword);
+      termsDicts = termsDictRepository.findByTermsDivEqualsAndTermsEaNameContainingAndRecYnEquals(source,keyword,recYn);
     } else if(field.equals("contents")) {
-      termsDicts = termsDictRepository.findByTermsDivEqualsAndTermsContentsContaining(source, keyword);
+      termsDicts = termsDictRepository.findByTermsDivEqualsAndTermsContentsContainingAndRecYnEquals(source, keyword, recYn);
     } else if(field.equals("abr")) {
-      termsDicts = termsDictRepository.findByTermsDivEqualsAndTermsAbrContaining(source, keyword);
+      termsDicts = termsDictRepository.findByTermsDivEqualsAndTermsAbrContainingAndRecYnEquals(source, keyword, recYn);
     } else if(field.equals("")) {
-      termsDicts = termsDictRepository.findByTermsDivExtra(source,keyword);
+      termsDicts = termsDictRepository.findByTermsDivExtra(source,keyword, recYn);
     }
     ByteArrayInputStream in = ExcelHelper.termsDictToExcel(termsDicts);
     return in;
   }
 
+  // 용어집이름이 전체(공백)일 때
   public ByteArrayInputStream loadTermsDictByKeywordNoTermsDiv(String field, String keyword) {
+    String recYn = "Y";
     List<TermsDict> termsDicts =  new ArrayList<>();;
     if (field.equals("koName")) {
-      termsDicts = termsDictRepository.findByTermsKoNameContaining(keyword);
+      termsDicts = termsDictRepository.findByTermsKoNameContainingAndRecYnEquals(keyword, recYn);
     } else if(field.equals("eaName")) {
-      termsDicts = termsDictRepository.findByTermsEaNameContaining(keyword);
+      termsDicts = termsDictRepository.findByTermsEaNameContainingAndRecYnEquals(keyword, recYn);
     } else if(field.equals("contents")) {
-      termsDicts = termsDictRepository.findByTermsContentsContaining(keyword);
+      termsDicts = termsDictRepository.findByTermsContentsContainingAndRecYnEquals(keyword, recYn);
     } else if(field.equals("abr")) {
-      termsDicts = termsDictRepository.findByTermsAbrContaining(keyword);
+      termsDicts = termsDictRepository.findByTermsAbrContainingAndRecYnEquals(keyword, recYn);
     } else if(field.equals("")) {
-      termsDicts = termsDictRepository.findByTermsKoNameContainingOrTermsEaNameContainingOrTermsContentsContainingOrTermsAbrContaining(keyword, keyword, keyword, keyword);
+      termsDicts = termsDictRepository.findByRecYnEqualsYAndKeyword(recYn, keyword);
     }
     ByteArrayInputStream in = ExcelHelper.termsDictToExcel(termsDicts);
     return in;
