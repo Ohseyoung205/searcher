@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @Service
 public class DeepQAService {
 
-    @Value("${https://192.168.219.2:8011/mrc}")
+    @Value("${deepqa.uri}")
     private String deepQAUri;
 
     @Autowired
@@ -89,6 +89,9 @@ public class DeepQAService {
         List<Integer> keyList = wrapper.matches(result.getStart(), result.getEnd());
         String context = wrapper.getTexts().entrySet().stream()
                 .map(e -> {
+                    // body 제거
+                    if("<body>".equalsIgnoreCase(e.getValue()) || "</body>".equalsIgnoreCase(e.getValue()))
+                        return "";
                     if(keyList.contains(e.getKey()))
                         return e.setValue(String.format("%s%s%s", tag[0], e.getValue(), tag[1]));
                     return e.getValue();
