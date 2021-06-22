@@ -93,7 +93,7 @@ public class DeepQAService {
                     if("<body>".equalsIgnoreCase(e.getValue()) || "</body>".equalsIgnoreCase(e.getValue()))
                         return "";
                     if(keyList.contains(e.getKey()))
-                        return e.setValue(String.format("%s%s%s", tag[0], e.getValue(), tag[1]));
+                        return String.format("%s%s%s", tag[0], e.getValue(), tag[1]);
                     return e.getValue();
                 }).collect(Collectors.joining());
 
