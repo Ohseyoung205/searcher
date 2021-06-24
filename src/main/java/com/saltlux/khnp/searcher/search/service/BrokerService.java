@@ -73,8 +73,9 @@ public class BrokerService {
 		String userid = request.getParameter("userid");
 		String user_msg = request.getParameter("user_msg");
 		String type = request.getParameter("type");
+		String voice_type = request.getParameter("voice_type");
 		
-		String param = "{\"chid\":\""+chid+"\",\"sysid\":\""+sysid+"\",\"uuid\":\""+uuid+"\",\"userid\":\""+userid+"\",\"user_msg\":\""+user_msg+"\",\"user_stt_msg\":\""+user_msg+"\",\"type\":\""+type+"\"}";
+		String param = "{\"chid\":\""+chid+"\",\"sysid\":\""+sysid+"\",\"uuid\":\""+uuid+"\",\"userid\":\""+userid+"\",\"user_msg\":\""+user_msg+"\",\"user_stt_msg\":\""+user_msg+"\",\"type\":\""+type+"\",\"voice_type\":\""+voice_type+"\"}";
 		
 		if(chid == null || "".equals(chid)) {
 			param = jsonString(request);
@@ -108,7 +109,7 @@ public class BrokerService {
 						sttToken = accessToken(); 													// accessToken 발급
 						if(sttToken) {
 							stt_create_day = tmpDay; 												// token발급 일자를 저장
-							sttMsg =  sendBatch(user_stt_msg);									// 음성인식 전송
+							sttMsg =  sendBatch(user_stt_msg);										// 음성인식 전송
 						}
 					} else {
 						if(Integer.parseInt(tmpDay) > Integer.parseInt(stt_create_day)) {			// token의 유효시간이 지나면
@@ -199,6 +200,12 @@ public class BrokerService {
 			String responseString = EntityUtils.toString(entity, "UTF-8");
 			JsonObject responseJson = new JsonObject(responseString);
 			JsonArray jsonMsg = responseJson.getJsonArray("replies");
+			String botName = responseJson.getString("botName");
+			
+			JsonObject reMsg = new JsonObject();
+			reMsg.put("botName", botName);
+			reMsg.put("replies", jsonMsg);
+			System.out.println("reMsg ::"+reMsg);
 			
 			if(jsonMsg.size() > 0) { 	//정상
 				if(!"TEXT".equals(jsonMsg.getJsonObject(0).getString("type"))) {
@@ -206,10 +213,10 @@ public class BrokerService {
 					if(msgJson.get("title") == null) {	//title 존재하지 않으면
 						map = returnRslt(json.get("chid").toString(), json.get("sysid").toString(), callId, json.get("userid").toString(), "", "", "-6", "톡봇API 응답 메시지 오류");
 					}else {
-						map = returnRslt(json.get("chid").toString(), json.get("sysid").toString(), callId, json.get("userid").toString(), jsonMsg.getJsonObject(0).getString("message"), "", "0", "");
+						map = returnRslt(json.get("chid").toString(), json.get("sysid").toString(), callId, json.get("userid").toString(), reMsg.toString(), "", "0", "");
 					}
 				}else {
-					map = returnRslt(json.get("chid").toString(), json.get("sysid").toString(), callId, json.get("userid").toString(), jsonMsg.getJsonObject(0).getString("message"), "", "0", "");
+					map = returnRslt(json.get("chid").toString(), json.get("sysid").toString(), callId, json.get("userid").toString(), reMsg.toString(), "", "0", "");
 				}
 				
 			}else {
