@@ -56,12 +56,13 @@ public class DummyController {
             map.put("data", data);
             datas.add(map);
 
+            DoubleSummaryStatistics stat = values.stream().mapToDouble(Double::doubleValue).summaryStatistics();
             Metric metric = new Metric();
             metric.setTag(tagname);
             metric.setDescription(String.format("%s_description", tagname));
-            metric.setMax(values.stream().mapToDouble(Double::doubleValue).max().getAsDouble());
-            metric.setMin(values.stream().mapToDouble(Double::doubleValue).min().getAsDouble());
-            metric.setAvg(values.stream().mapToDouble(Double::doubleValue).average().getAsDouble());
+            metric.setMax(stat.getMax());
+            metric.setMin(stat.getMin());
+            metric.setAvg(stat.getAverage());
             calc.add(metric);
         }
 
@@ -74,7 +75,7 @@ public class DummyController {
         return resp;
     }
 
-    static List<Double> randomGenerator(int point){
+    private List<Double> randomGenerator(int point){
         int min = ThreadLocalRandom.current().nextInt(-10, 10);
         int max = ThreadLocalRandom.current().nextInt(-10, 10);
         while (min >= max){

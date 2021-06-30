@@ -13,7 +13,6 @@ import java.util.stream.Stream;
 public class DBScanCluster<T> {
 
     private List<Cluster<T>> clusters;
-//    private Map<T, Map<T, Double>> distanceMap;
     private DistanceMeasure distanceMeasure;
     private Map<T, PointStatus> visited;
     private double eps;
@@ -85,22 +84,6 @@ public class DBScanCluster<T> {
         return max + 1;
 
     }
-
-    /*private List<T> getNeighbors(T point, List<T> points) {
-        Map<T, Double> distances = distanceMap.get(point);
-        if(distances == null)
-            return new ArrayList<>();
-
-        List<T> neighbors = new ArrayList();
-        for (T neighbor : points) {
-            if (!point.equals(neighbor) &&
-                    distances.containsKey(neighbor) &&
-                    distances.get(neighbor) <= eps) {
-                neighbors.add(neighbor);
-            }
-        }
-        return neighbors;
-    }*/
 
     private List<T> getNeighbors(T point, List<T> points) {
         List<T> neighbors = new ArrayList();

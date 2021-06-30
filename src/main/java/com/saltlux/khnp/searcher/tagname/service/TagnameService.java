@@ -117,14 +117,14 @@ public class TagnameService {
     private String mergeSentence(List<String> sentences){
         final String regex = "[-\\s]";
         final HashMap<String, Integer> wordMap = new HashMap<>();
-        sentences.stream()
-                .flatMap(s -> Stream.of(s.split(regex)))
-                .forEach(w -> wordMap.put(w, wordMap.getOrDefault(w, 0) + 1));
 
-        final double mean = wordMap.values().stream()
-                .mapToDouble(Double::valueOf)
-                .average().orElse(1.0);
         final String rep = sentences.get(0);
+        final double mean = sentences.stream()
+                .flatMap(s -> Stream.of(s.split(regex)))
+                .peek(w -> wordMap.put(w, wordMap.getOrDefault(w, 0) + 1))
+                .distinct()
+                .mapToDouble(w -> wordMap.get(w))
+                .average().orElse(1.0);
         final String abs = Stream.of(rep.split(regex))
                 .filter(w -> StringUtils.isNotEmpty(w))
                 .filter(w -> wordMap.get(w) > 1)
