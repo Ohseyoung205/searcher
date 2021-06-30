@@ -1,101 +1,114 @@
 package com.saltlux.khnp.searcher.dummy.controller;
 
-import com.saltlux.khnp.searcher.common.CommonResponseVo;
-import org.apache.commons.collections4.Trie;
-import org.apache.commons.collections4.trie.PatriciaTrie;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.util.CollectionUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.PostConstruct;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.web.bind.annotation.*;
+
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 
+@RequestMapping("/api/hisdata")
 @RestController
-@RequestMapping("/plant")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class DummyController {
 
-    /*
-    * 고리: 1 월성: 2 한빛: 3 한울: 4 신한울: 7 새울: 8
-    * [1발전소(1,2호기): 1] [2발전소(3,4호기): 2] [3발전소(5,6호기): 3]
-    * ?호기 : ?
-    * */
+    @GetMapping("/{tagnames}")
+    public SignalResponse signal(
+            @PathVariable(value = "tagnames")String[] tagnames,
+            @RequestParam(value = "start")String start,
+            @RequestParam(value = "end")String end,
+            @RequestParam(value = "point", defaultValue = "250")Integer point) throws Exception {
 
-    private List<String> plants = Arrays.asList("2135", "2136", "2235", "2236", "2323", "2335", "2336", "2423", "2435", "2436");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
+        long std = sdf.parse(start).getTime();
+        long etd = sdf.parse(end).getTime();
+        long period = (etd - std) / point;
 
-    private Trie<String, String> trie = new PatriciaTrie<>();
+        List<Long> times = LongStream.range(0, point).boxed()
+                .map(i -> Instant.ofEpochMilli(std + (i * period))
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDateTime()
+                        .toEpochSecond(ZoneOffset.UTC))
+                .map(l -> l * 1000)
+                .collect(Collectors.toList());
 
-    private Map<Integer, Map<Integer, String>> map = new HashMap();
+        List<Map<String,Object>> datas = new ArrayList<>();
+        List<Metric> calc = new ArrayList<>();
+        for(String tagname : tagnames){
+            List<List<Object>> data = new ArrayList<>();
+            List<Double> values = randomGenerator(point);
+            for (int i = 0; i < times.size(); i++) {
+                // [[1560259800000, 48.7]. [1560346200000, 48.55]]
+                // 배열 0번 : unix timestamp, 배열 1번 value
+                data.add(Arrays.asList(times.get(i), values.get(i)));
+            }
 
-    @PostConstruct
-    public void init(){
+            LinkedHashMap<String,Object> map = new LinkedHashMap();
+            map.put("tag", tagname);
+            map.put("data", data);
+            datas.add(map);
 
-        Map<Integer, String> map1 = new HashMap();
-        map1.put(1, "고리");
-        map1.put(2, "월성");
-        map1.put(3, "한빛");
-        map1.put(4, "한울");
-        map1.put(7, "신한울");
-        map1.put(8, "새울");
-        map.put(1, map1);
-
-        Map<Integer, String> map2 = new HashMap();
-        map2.put(1, "1발전소(1,2호기)");
-        map2.put(2, "2발전소(3,4호기)");
-        map2.put(3, "3발전소(5,6호기)");
-        map.put(2, map2);
-
-        Map<Integer, String> map3 = new HashMap();
-        map3.put(1, "1호기");
-        map3.put(2, "2호기");
-        map3.put(3, "3호기");
-        map3.put(4, "4호기");
-        map3.put(5, "5호기");
-        map3.put(6, "6호기");
-        map3.put(7, "7호기");
-        map3.put(8, "8호기");
-        map.put(3, map3);
-
-        plants.forEach(s -> trie.put(s, s));
-    }
-
-    @GetMapping("/groupBy/{prefix}")
-    public CommonResponseVo plantGroupBy(@PathVariable String prefix) {
-        return new CommonResponseVo(replace(prefix));
-    }
-
-    private List<String> replace(String prefix){
-        List<String> list = trie.prefixMap(prefix).keySet().stream().collect(Collectors.toList());
-        int prefixLength = prefix.length();
-
-        if(!map.containsKey(prefixLength) || CollectionUtils.isEmpty(list)){
-            return Collections.EMPTY_LIST;
+            Metric metric = new Metric();
+            metric.setTag(tagname);
+            metric.setDescription(String.format("%s_description", tagname));
+            metric.setMax(values.stream().mapToDouble(Double::doubleValue).max().getAsDouble());
+            metric.setMin(values.stream().mapToDouble(Double::doubleValue).min().getAsDouble());
+            metric.setAvg(values.stream().mapToDouble(Double::doubleValue).average().getAsDouble());
+            calc.add(metric);
         }
 
-        Map<Integer, String> m = map.get(prefixLength);
-        return list.stream()
-                .map(str -> str.substring(prefixLength, prefixLength + 1))
-                .map(s -> Integer.valueOf(s))
-                .map(i -> m.get(i))
-                .filter(s -> StringUtils.isNotEmpty(s))
-                .distinct()
+        Timestamps timestamps = new Timestamps();
+        timestamps.datas = datas;
+        timestamps.calc = calc;
+
+        SignalResponse resp = new SignalResponse();
+        resp.result = timestamps;
+        return resp;
+    }
+
+    static List<Double> randomGenerator(int point){
+        int min = ThreadLocalRandom.current().nextInt(-10, 10);
+        int max = ThreadLocalRandom.current().nextInt(-10, 10);
+        while (min >= max){
+            max = ThreadLocalRandom.current().nextInt(-10, 10);
+        }
+        int m = max;
+        return IntStream.range(0, point)
+                .mapToDouble(i -> ThreadLocalRandom.current().nextDouble(min, m))
+                .boxed()
                 .collect(Collectors.toList());
     }
 
-    @GetMapping("/name/{prefix}")
-    public CommonResponseVo name(@PathVariable String prefix) {
-        if(prefix.length() != 4){
-            return new CommonResponseVo(prefix);
-        }
-
-        String name = IntStream.of(1, 2, 3).boxed()
-                .map(i -> map.get(i).get(Integer.valueOf(prefix.substring(i, i + 1))))
-                .filter(r -> StringUtils.isNotEmpty(r))
-                .collect(Collectors.joining(" "));
-        return new CommonResponseVo(name);
+    @Getter
+    @Setter
+    public class SignalResponse{
+        Integer code = 0;
+        Object result;
     }
+
+    @Getter
+    @Setter
+    public class Timestamps{
+        List<Map<String,Object>> datas;
+        List<Metric> calc;
+    }
+
+    @Getter
+    @Setter
+    public class Metric{
+        String tag;
+        String description;
+        Double min;
+        Double max;
+        Double avg;
+    }
+
 }
