@@ -1,25 +1,5 @@
 package com.saltlux.khnp.searcher.search.controller;
 
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.catalina.connector.Connector;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
-import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.saltlux.khnp.searcher.common.CommonResponseVo;
 import com.saltlux.khnp.searcher.search.service.BrokerService;
 import com.saltlux.khnp.searcher.search.service.SearchLogService;
@@ -27,6 +7,12 @@ import com.saltlux.khnp.searcher.search.service.SearchService;
 import com.saltlux.khnp.searcher.search.service.TargetIndexService;
 import com.saltlux.khnp.searcher.search.vo.SearchRequests;
 import com.saltlux.khnp.searcher.search.vo.SearchVo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Map;
 
 
 @RestController
@@ -88,19 +74,4 @@ public class SearchController {
 			, HttpServletResponse response) throws Exception{	
     	return brokerService.khnpBroker(request, response);
     }
-     
-    
-    @Bean
-    public ServletWebServerFactory serverFactory() {
-    	TomcatServletWebServerFactory tomcat = new TomcatServletWebServerFactory();
-    	tomcat.addAdditionalTomcatConnectors(createStandardConnector()); // 톰캣에 Connector 추가
-    	return tomcat;
-    }
-    
-    private Connector createStandardConnector() {
-    	Connector connector = new Connector("org.apache.coyote.http11.Http11NioProtocol");
-    	connector.setPort(8700); // 포트 설정
-    	return connector;
-    }
-
 }
