@@ -48,7 +48,8 @@ public class CustomDict {
 
     @Column
     private Date createDt;
-
+    // FIXME 사전에서 가져와서 색인할때는 indexword를 추출할 필요가 있지만
+    // 런타임 쿼리에서 indexword를 추출할때에는 단어별로 형분석기를 다시 돌릴 필요가 없긴하다.
     public List<String> getIndexWords(TMSAnalyzer analyzer) {
         return Stream.of(subWord.split(","), new String[]{mainWord})
                 .flatMap(Arrays::stream)

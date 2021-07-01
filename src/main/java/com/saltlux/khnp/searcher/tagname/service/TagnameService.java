@@ -4,6 +4,7 @@ import com.saltlux.dor.api.IN2StdSearcher;
 import com.saltlux.dor.api.common.query.*;
 import com.saltlux.khnp.searcher.common.constant.TagnameField;
 import com.saltlux.khnp.searcher.search.vo.PageResultVo;
+import com.saltlux.khnp.searcher.tagname.model.ClusteredTagnameVo;
 import com.saltlux.khnp.searcher.tagname.model.TagnameVo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +46,8 @@ public class TagnameService {
         IN2BooleanQuery subQuery = new IN2BooleanQuery();
         String korFieldName = TagnameField.DESCRIPTION.name() + "_MORPH";
         String korFieldValue = synonymDictionary.getSynonymQuery(query);
-        subQuery.add(new IN2FormularQuery(String.format("%s:%s", korFieldName, korFieldValue)), IN2Query.OR);
+//        subQuery.add(new IN2FormularQuery(String.format("%s:%s", korFieldName, korFieldValue)), IN2Query.OR);
+        subQuery.add(new IN2ParseQuery(korFieldName, korFieldValue, IN2StdSearcher.TOKENIZER_KOR), IN2Query.OR);
 
         String bigramFieldName = TagnameField.INTEGRATION.name() + "_BIGRAM";
         subQuery.add(new IN2ParseQuery(bigramFieldName, query, IN2StdSearcher.TOKENIZER_BIGRAM), IN2Query.OR);
@@ -61,22 +63,27 @@ public class TagnameService {
         LinkedHashMap<Integer, List<TagnameVo>> map = new LinkedHashMap<>();
         for (int i = 0; i < searcher.getDocumentCount(); i++){
             TagnameVo vo = new TagnameVo(i, searcher);
-            List<TagnameVo> list = map.getOrDefault(vo.getCluster(), new ArrayList<>());
+
+            int clusterId = vo.getCluster() < 0 ? i * vo.getCluster() : vo.getCluster();
+            List<TagnameVo> list = map.getOrDefault(clusterId, new ArrayList<>());
             list.add(vo);
-            map.put(vo.getCluster(), list);
+            map.put(clusterId, list);
         }
 
-        List<HashMap<String, String>> result = new ArrayList();
+        List<ClusteredTagnameVo> result = new ArrayList();
         for(Map.Entry<Integer, List<TagnameVo>> e : map.entrySet()){
             HashMap<String, String> m = new HashMap<>();
+            if(e.getKey() <= 0){
+                TagnameVo tag = e.getValue().get(0);
+                result.add(new ClusteredTagnameVo(tag.getTagname(), tag.getDescription(), "cluster_0"));
+                continue;
+            }
+
             String tagnames = e.getValue().stream().map(t -> t.getTagname()).collect(Collectors.joining(","));
             List<String> descriptions = e.getValue().stream().map(t -> t.getDescription()).collect(Collectors.toList());
-            m.put("tagnames", tagnames);
-            m.put("description", mergeSentence(descriptions));
-            m.put("cluster", String.format("cluster_%d", e.getKey()));
-            result.add(m);
+            result.add(new ClusteredTagnameVo(tagnames, mergeSentence(descriptions), String.format("cluster_%d", e.getKey())));
         }
-        return new PageResultVo(result, searcher.getTotalDocumentCount());
+        return new PageResultVo(result, result.size());
     }
 
     public PageResultVo search(String plant, String query, int offset, int limit) {
@@ -119,10 +126,10 @@ public class TagnameService {
         final HashMap<String, Integer> wordMap = new HashMap<>();
 
         final String rep = sentences.get(0);
-        final double mean = sentences.stream()
+        sentences.stream()
                 .flatMap(s -> Stream.of(s.split(regex)))
-                .peek(w -> wordMap.put(w, wordMap.getOrDefault(w, 0) + 1))
-                .distinct()
+                .forEach(w -> wordMap.put(w, wordMap.getOrDefault(w, 0) + 1));
+        final double mean = wordMap.keySet().stream()
                 .mapToDouble(w -> wordMap.get(w))
                 .average().orElse(1.0);
         final String abs = Stream.of(rep.split(regex))

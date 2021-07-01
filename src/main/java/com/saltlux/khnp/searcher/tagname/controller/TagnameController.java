@@ -17,9 +17,7 @@ public class TagnameController {
     @GetMapping("")
     public CommonResponseVo searchByTalkbot(
             @RequestParam(value = "plant", defaultValue = "")String plant,
-            @RequestParam(value = "query", defaultValue = "")String query,
-            @RequestParam(value = "offset", defaultValue = "0")int offset,
-            @RequestParam(value = "limit", defaultValue = "5")int limit){
+            @RequestParam(value = "query", defaultValue = "")String query) {
         return new CommonResponseVo(tagnameService.searchByTalkbot(plant, query));
     }
 
@@ -27,7 +25,7 @@ public class TagnameController {
     public CommonResponseVo search(@RequestParam(value = "query", defaultValue = "")String query,
                                    @RequestParam(value = "plant", defaultValue = "")String plant,
                                    @RequestParam(value = "offset", defaultValue = "0")int offset,
-                                   @RequestParam(value = "limit", defaultValue = "10")int limit){
+                                   @RequestParam(value = "limit", defaultValue = "10")int limit) throws Exception{
         return new CommonResponseVo(tagnameService.search(plant, query, offset, limit));
     }
 

@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class ControllerAdvice {
 
-    @ExceptionHandler(Exception.class)
-    public Object except(Exception e) {
+    @ExceptionHandler(RuntimeException.class)
+    public CommonResponseVo exceptHandle(RuntimeException e) {
         log.error("", e);
         CommonResponseVo res = new CommonResponseVo();
         res.setErrorMessage(e.getMessage());

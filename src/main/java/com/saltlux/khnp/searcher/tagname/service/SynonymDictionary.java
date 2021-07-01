@@ -87,11 +87,11 @@ public class SynonymDictionary {
     }
 
     public String getSynonymQuery(String query){
-        return trie.tokenize(query).stream()
+        return trie.tokenize(analyzer.getIndexWords(query)).stream()
                 .map(token -> token.isMatch() ?
-                                String.format("(%s)", synonymMap.get(token.getFragment()).toSynonymQuery(analyzer).trim()) :
-                                token.getFragment().trim())
-                .collect(Collectors.joining(" OR "));
+                        String.format("(%s)", synonymMap.get(token.getFragment()).toSynonymQuery(analyzer).trim()) :
+                        token.getFragment().trim())
+                .collect(Collectors.joining(" "));
     }
 
 }

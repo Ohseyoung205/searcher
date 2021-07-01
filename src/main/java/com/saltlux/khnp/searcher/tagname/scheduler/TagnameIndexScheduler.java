@@ -66,7 +66,7 @@ public class TagnameIndexScheduler {
                 .map(e -> new TagnameVo(e))
                 .sorted()
                 .collect(Collectors.toList());
-        LevenshteinDistance measure = new LevenshteinDistance(maxDistance);
+        LevenshteinDistance measure = new LevenshteinDistance(maxDistance + 1);
         DBScanCluster<TagnameVo> clusterer = new DBScanCluster(measure, eps, minPts);
         clusterer.cluster(list);
         for(Cluster<TagnameVo> c : clusterer.getClusters()){

@@ -9,12 +9,12 @@ import java.util.Collection;
 @Setter
 public class PageResultVo {
 
-    private Collection result;
+    private Collection documents;
 
     private long totalCount;
 
-    public PageResultVo(Collection result, long totalCount){
-        this.result = result;
+    public PageResultVo(Collection documents, long totalCount){
+        this.documents = documents;
         this.totalCount = totalCount;
     }
 
