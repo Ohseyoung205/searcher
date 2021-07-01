@@ -1,40 +1,82 @@
 package com.saltlux.khnp.searcher.search.model;
 
+import com.saltlux.khnp.searcher.deepqa.analyzer.TMSAnalyzer;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.annotations.Type;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Getter
+@Setter
 @Entity
 @NoArgsConstructor
 @Table(name = "custom_dictionary")
 public class CustomDict {
 
-  @Id
-  @Column
-  private Integer wordId;
+    public enum WORD_DIV {
+        B, // 불용어
+        D  // 동의어
+    }
 
-  @Column
-  private String mainWord;
+    @Id
+    private Long wordId;
 
-  @Column
-  private String subWord;
+    @Column
+    private String mainWord;
 
-  @Column
-  private String wordDiv;
+    @Column
+    private String subWord;
 
-  @Column
-  private String useYn;
+    @Column
+    @Enumerated(EnumType.STRING)
+    private WORD_DIV wordDiv;
 
-  @Column
-  private String recYn;
+    @Column
+    private String useYn;
 
-  @Column
-  private String createDt;
+    @Column
+    @Type(type = "yes_no")
+    private boolean recYn;
 
+    @Column
+    private Date createDt;
+
+    public List<String> getIndexWords(TMSAnalyzer analyzer) {
+        return Stream.of(subWord.split(","), new String[]{mainWord})
+                .flatMap(Arrays::stream)
+                .map(w -> analyzer.getIndexWords(w).toLowerCase())
+                .filter(w -> StringUtils.isNotEmpty(w))
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+    }
+
+    public String toSynonymQuery(TMSAnalyzer analyzer) {
+        return getIndexWords(analyzer).stream()
+                .map(w -> String.format("(%s)", w))
+                .collect(Collectors.joining(" OR "));
+    }
+
+    @Override
+    public int hashCode() {
+        return (int) (wordId ^ wordId >>> 32);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        CustomDict other = (CustomDict) o;
+        return other.hashCode() == this.hashCode();
+    }
 
 }
