@@ -10,7 +10,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
@@ -76,14 +75,11 @@ public class DummyController {
     }
 
     private List<Double> randomGenerator(int point){
-        int min = ThreadLocalRandom.current().nextInt(-10, 10);
-        int max = ThreadLocalRandom.current().nextInt(-10, 10);
-        while (min >= max){
-            max = ThreadLocalRandom.current().nextInt(-10, 10);
-        }
-        int m = max;
+        Random r = new Random(System.nanoTime());
+        double d1 = -10 + 20 * r.nextDouble();
+        double d2 = -10 + 20 * r.nextDouble();
         return IntStream.range(0, point)
-                .mapToDouble(i -> ThreadLocalRandom.current().nextDouble(min, m))
+                .mapToDouble(i -> Math.min(d1, d2) + (Math.max(d1, d2) - Math.min(d1, d2)) * r.nextDouble())
                 .boxed()
                 .collect(Collectors.toList());
     }

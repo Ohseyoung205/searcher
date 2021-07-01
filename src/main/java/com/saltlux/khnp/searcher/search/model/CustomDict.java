@@ -50,9 +50,8 @@ public class CustomDict {
     private Date createDt;
 
     public List<String> getIndexWords(TMSAnalyzer analyzer) {
-        return Stream.concat(
-                Arrays.stream(subWord.split(",")),
-                Arrays.stream(new String[]{mainWord}))
+        return Stream.of(subWord.split(","), new String[]{mainWord})
+                .flatMap(Arrays::stream)
                 .map(w -> analyzer.getIndexWords(w).toLowerCase())
                 .filter(w -> StringUtils.isNotEmpty(w))
                 .distinct()
