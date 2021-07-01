@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -47,6 +48,9 @@ public class BrokerService {
 	@Value("${broker.stt.port}") 		//음성결과 포트
 	public int sPort; 
 	
+	@Value("${broker.stt.port1}") 	// 음성인식 PORT
+	public int sttPort; 
+	
 	
 	public ArrayList<JSONObject> userConverstationList = new ArrayList<JSONObject>(); 			// converstation을 관리하는 arrayList
 	//public HashMap<String, String> returnSttMsg = new HashMap<String, String>();				// 음성인식에서 넘어온 결과값을 담는 HashMap
@@ -62,9 +66,9 @@ public class BrokerService {
 			.setSocketTimeout(10*1000)
 			.build();
 	
-	public Map<String, String> khnpBroker(HttpServletRequest request, HttpServletResponse response) throws Exception {
+	public Map<String, Object> khnpBroker(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		// TODO Auto-generated method stub
-		Map<String, String> map = new HashMap<>();
+		Map<String, Object> map = new HashMap<String, Object>();
 		
 		String callId = "";
 		String chid = request.getParameter("chid");
@@ -84,14 +88,18 @@ public class BrokerService {
 		JSONObject json = new JSONObject();
 		json = (JSONObject) JSONValue.parse(param);
 		
-		System.out.println("json ::"+json);
+		
 		
 		if(json == null || json.get("chid") == null || "".equals(json.get("chid")) 
 				|| json.get("uuid") == null || "".equals(json.get("uuid"))) {					// 채널명과 대화세션 UUID가 존재하지 않으면
 			map = returnRslt("", "", "", "", "", "", "-1", "입력값 오류"); 
 		}else {
 			String tmpType = json.get("type").toString();
-			
+			String stt_voice_type = "";
+			if(json.get("voice_type") != null && !"".equals(json.get("voice_type"))) {
+				stt_voice_type = json.get("voice_type").toString();
+			}
+
 			if("stt_khnp".equals(json.get("chid").toString())) { 								// 넘어온 채널명이 음성인식이면
 				String sttMsg = "";		
 				boolean sttToken = false;
@@ -139,20 +147,20 @@ public class BrokerService {
 					}
 				}
 				
-				System.out.println("sttMsg ::"+sttMsg);
 				if(!"".equals(sttMsg)) { 															
 					map = returnRslt(json.get("chid").toString(), json.get("sysid").toString(), json.get("uuid").toString(), json.get("userid").toString(), "", sttMsg, "0", "");
 				} else {
 					if("1".equals(tmpType) || "2".equals(tmpType)) {
 						map = returnRslt(json.get("chid").toString(), json.get("sysid").toString(), json.get("uuid").toString(), json.get("userid").toString(), "", "", "-4","음성 인식 전송 오류");
 					}else {
-						String sttReturn = ttsReturn01(map.get("text_answer").toString());
+					//	String sttReturn = ttsReturn01(map.get("text_answer").toString(), stt_voice_type);
+						String sttReturn = ttsReturn01(map.get("text_answer").toString(), stt_voice_type);
 						map = returnRslt(json.get("chid").toString(), json.get("sysid").toString(), json.get("uuid").toString(), json.get("userid").toString(), map.get("text_answer").toString(), sttReturn, "0", "");
 					}
 				}
 			}else {																				// text로 넘어오면
 				if("2".equals(tmpType)) {
-					String sttReturn = ttsReturn01(json.get("user_msg").toString());
+					String sttReturn = ttsReturn01(json.get("user_msg").toString(), stt_voice_type);
 					map = returnRslt(json.get("chid").toString(), json.get("sysid").toString(), json.get("uuid").toString(), json.get("userid").toString(), json.get("user_msg").toString(), sttReturn, "0", "");
 				}else {
 					callId = json.get("uuid").toString();
@@ -174,6 +182,7 @@ public class BrokerService {
 				}
 			}
 		}
+		
 		return map;
 	}
 	
@@ -186,8 +195,9 @@ public class BrokerService {
 	 * @return
 	 * @throws Exception
 	 */
-	public Map<String, String> on_cnvs(HttpServletRequest request, JSONObject json, String conversationId, String callId) throws Exception{
-		Map<String, String> map = new HashMap<>();
+	@SuppressWarnings("unchecked")
+	public Map<String, Object> on_cnvs(HttpServletRequest request, JSONObject json, String conversationId, String callId) throws Exception{
+		Map<String, Object> map = new HashMap<String, Object>();
 		CloseableHttpClient httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
 		try {
 			HttpPost req = new HttpPost("http://"+ip+":"+port+"/api/v1/chat/"+talkbotId+"/"+conversationId+"/1");
@@ -201,11 +211,25 @@ public class BrokerService {
 			JsonObject responseJson = new JsonObject(responseString);
 			JsonArray jsonMsg = responseJson.getJsonArray("replies");
 			String botName = responseJson.getString("botName");
-			
 			JsonObject reMsg = new JsonObject();
 			reMsg.put("botName", botName);
-			reMsg.put("replies", jsonMsg);
-			System.out.println("reMsg ::"+reMsg);
+			
+			JSONArray arrMsg = new JSONArray();
+			
+			for(int i=0;i<jsonMsg.size();i++) {
+				JsonObject smMsg = new JsonObject();
+				if(!"TEXT".equals(jsonMsg.getJsonObject(i).getString("type"))) {
+					
+					smMsg.put("type", jsonMsg.getJsonObject(i).getString("type"));
+					smMsg.put("message", (JSONObject) JSONValue.parse(jsonMsg.getJsonObject(i).getString("message")));
+				}else {
+					smMsg.put("type", jsonMsg.getJsonObject(i).getString("type"));
+					smMsg.put("message", jsonMsg.getJsonObject(i).getString("message"));
+				}
+				arrMsg.add(smMsg);
+			}
+			
+			reMsg.put("replies", arrMsg);
 			
 			if(jsonMsg.size() > 0) { 	//정상
 				if(!"TEXT".equals(jsonMsg.getJsonObject(0).getString("type"))) {
@@ -225,7 +249,6 @@ public class BrokerService {
 			
 		}catch(Exception e) {
 			map = returnRslt(json.get("chid").toString(), json.get("sysid").toString(), callId, json.get("userid").toString(), "", "", "-5", "톡봇API접속 오류");
-			System.out.println("on_cnvs 접속오류");
 		}finally {
 			httpClient.close();
 		}
@@ -406,8 +429,7 @@ public class BrokerService {
 			CloseableHttpResponse res = httpClient.execute(req);
 			HttpEntity resEntity = res.getEntity();
 			String responseMsg = EntityUtils.toString(resEntity,"UTF-8");
-			JsonObject responseJson = new JsonObject(responseMsg);
-			System.out.println("responseJson send ::"+responseJson);
+//			JsonObject responseJson = new JsonObject(responseMsg);
 
 			JSONObject sttJson = (JSONObject) JSONValue.parse(responseMsg);
 			
@@ -454,19 +476,25 @@ public class BrokerService {
 		return resultToken;
 	}
 	
-	public Map<String, String> returnRslt(String chid, String sysid, String uuid, String userid, String text_answer
+	public Map<String, Object> returnRslt(String chid, String sysid, String uuid, String userid, String text_answer
 			, String stt_answer, String status, String error_msg) throws Exception{
-		Map<String, String> map = new HashMap<>();
-		map.put("chid", chid);
-		map.put("sysid", sysid);
-		map.put("uuid", uuid);
-		map.put("userid", userid);
-		map.put("text_answer", text_answer);
-		map.put("stt_answer", stt_answer);
-		map.put("status", status);
-		map.put("error_msg", error_msg);
 		
-		return map;
+//		JSONObject rsltJson = new JSONObject();
+		Map<String, Object> rsltJson = new HashMap<String, Object>();
+//		JsonObject answerJson = new JsonObject(text_answer);
+		JSONObject answerJson = new JSONObject();
+		answerJson = (JSONObject) JSONValue.parse(text_answer);
+		
+		rsltJson.put("chid", chid);
+		rsltJson.put("sysid", sysid);
+		rsltJson.put("uuid", uuid);
+		rsltJson.put("userid", userid);
+		rsltJson.put("text_answer", answerJson);
+		rsltJson.put("stt_answer", stt_answer);
+		rsltJson.put("status", status);
+		rsltJson.put("error_msg", error_msg);
+		
+		return rsltJson;
 	}
 	
 	/**
@@ -517,23 +545,43 @@ public class BrokerService {
 		
 	}
 	
-	public String ttsReturn01(String text) throws Exception{
+	public String ttsReturn01(String text, String voice_type) throws Exception{
 		String returnVoice = "";
-		text = text.replaceAll("<([^>]+)>", "");
-		int nReturn = 0;
-		libttsapi ttsapi = new libttsapi();
-		try {
-            nReturn = ttsapi.ttsRequestBuffer(ip, sPort, text, 10, libttsapi.FORMAT_WAV, libttsapi.TRUE, libttsapi.TRUE);
-		}catch(Exception e) {
-			nReturn = -9;
-		}
+		JsonObject jsonText = new JsonObject(text);
+		JsonArray jsonMsg = jsonText.getJsonArray("replies");
+		String sttText = jsonMsg.getJsonObject(0).getString("message");
+		sttText = sttText.replaceAll("<([^>]+)>", "");
 		
-		if (nReturn == libttsapi.TTS_RESULT_SUCCESS) {
-            byte[] szVoiceData = ttsapi.szVoiceData;
-            returnVoice = Base64.encodeBase64String(szVoiceData); //넘어온 binary data => String 로 변경
-        } else {
-            System.out.println("TTS Failed (" + nReturn + ")!!!");
-        }
+		if("saltlux".equals(voice_type)) {
+			CloseableHttpClient httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
+			HttpGet req = new HttpGet("http://"+ip+":"+sttPort+"/service-broker/tts?text="+sttText.replaceAll(" ", "%20")+"&voice="+voice_type+"&cache=true");
+			CloseableHttpResponse res = httpClient.execute(req);
+			HttpEntity entity = res.getEntity();
+			String responseMsg = EntityUtils.toString(entity,"UTF-8");
+			JsonObject responseJson = new JsonObject(responseMsg);
+			if(responseJson.getInteger("errorCode") != 0) {
+				returnVoice = responseJson.getString("errorMessage");
+			}else {
+				returnVoice = responseJson.getString("result");
+			}
+		}else {
+			int nReturn = 0;
+			int intVoice = Integer.parseInt(voice_type);
+			
+			libttsapi ttsapi = new libttsapi();
+			try {
+	            nReturn = ttsapi.ttsRequestBuffer(ip, sPort, text, intVoice, libttsapi.FORMAT_WAV, libttsapi.TRUE, libttsapi.TRUE);
+			}catch(Exception e) {
+				nReturn = -9;
+			}
+			
+			if (nReturn == libttsapi.TTS_RESULT_SUCCESS) {
+	            byte[] szVoiceData = ttsapi.szVoiceData;
+	            returnVoice = Base64.encodeBase64String(szVoiceData); //넘어온 binary data => String 로 변경
+	        } else {
+	            System.out.println("TTS Failed (" + nReturn + ")!!!");
+	        }
+		}
 		
 		return returnVoice;
 		
