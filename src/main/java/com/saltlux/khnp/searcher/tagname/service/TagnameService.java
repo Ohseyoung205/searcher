@@ -46,7 +46,6 @@ public class TagnameService {
         IN2BooleanQuery subQuery = new IN2BooleanQuery();
         String korFieldName = TagnameField.DESCRIPTION.name() + "_MORPH";
         String korFieldValue = synonymDictionary.getSynonymQuery(query);
-//        subQuery.add(new IN2FormularQuery(String.format("%s:%s", korFieldName, korFieldValue)), IN2Query.OR);
         subQuery.add(new IN2ParseQuery(korFieldName, korFieldValue, IN2StdSearcher.TOKENIZER_KOR), IN2Query.OR);
 
         String bigramFieldName = TagnameField.INTEGRATION.name() + "_BIGRAM";
@@ -98,7 +97,7 @@ public class TagnameService {
             IN2BooleanQuery subQuery = new IN2BooleanQuery();
             String korFieldName = TagnameField.INTEGRATION.name() + "_MORPH";
             String korFieldValue = synonymDictionary.getSynonymQuery(query);
-            subQuery.add(new IN2FormularQuery(String.format("%s:%s", korFieldName, korFieldValue)), IN2Query.OR);
+            subQuery.add(new IN2ParseQuery(korFieldName, korFieldValue, IN2StdSearcher.TOKENIZER_KOR), IN2Query.OR);
 
             String bigramFieldName = TagnameField.INTEGRATION.name() + "_BIGRAM";
             subQuery.add(new IN2ParseQuery(bigramFieldName, query, IN2StdSearcher.TOKENIZER_BIGRAM), IN2Query.OR);
