@@ -44,23 +44,20 @@ public class TargetIndexService {
 	@Value("${in2.dor.port}")
 	private Integer port;
 	    
-	@Value("${in2.dor.index.document}")
-	private String index_name;
-	
 	
 	@Value("${htm.file.path}")
 	private String htmPath;
 	
-	private SearchObject init(SearchObject searcher){
+	private SearchObject init(SearchObject searcher, String index_name){
 	    searcher.setServer(host, port);
 	    searcher.addIndex(index_name);
 	    return searcher;
 	}
 	
-	public void targetIndex(String domain, String fileNm) throws Exception{
+	public void targetIndex(String domain, String fileNm, String indexName) throws Exception{
 		//############### 타겟 색인 불러오기 ###################
 		IN2StdSearcher searcher = new IN2StdSearcher();
-		init(searcher);
+		init(searcher, indexName);
 		
 
 		if(StringUtils.isNotBlank(fileNm)){	
@@ -108,7 +105,7 @@ public class TargetIndexService {
         facetSearcher.setServer(host, port);
         facetSearcher.setFilter(new IN2TermsFilter("DOMAIN", domain.split(";"), IN2StdSearcher.SOURCE_TYPE_TEXT));
         facetSearcher.newQuery();
-        facetSearcher.addIndex(index_name);
+        facetSearcher.addIndex(indexName);
 
         if(StringUtils.isNotBlank(fileNm)){	
         	facetSearcher.setQuery(new IN2ParseQuery("INDEXGB", "target", IN2StdSearcher.TOKENIZER_KOR_BIGRAM));
@@ -155,9 +152,12 @@ public class TargetIndexService {
 			for( Map.Entry<String, Map<String, String>> tEm : targetMap.entrySet() ){
 				if("index".equals(tEm.getValue().get("indexgb"))) {
 					if(!"".equals(tEm.getValue().get("level"))) {
-						if(!htmlMap.get(tEm.getValue().get("position").split("-")[0]).contains("<div class='hilight")) {
-							htmlMap.put(tEm.getValue().get("position").split("-")[0], "<div class='hilight-"+tEm.getValue().get("position").split("-")[0]+"'>"+htmlMap.get(tEm.getValue().get("position").split("-")[0]));
-							htmlMap.put(tEm.getValue().get("position").split("-")[1], htmlMap.get(tEm.getValue().get("position").split("-")[1])+"</div>");
+						
+						if(tEm.getValue().get("position").trim() != null && !"".equals(tEm.getValue().get("position").trim())) {
+							if(!htmlMap.get(tEm.getValue().get("position").split("-")[0]).contains("<div class='hilight")) {
+								htmlMap.put(tEm.getValue().get("position").split("-")[0], "<div class='hilight-"+tEm.getValue().get("position").split("-")[0]+"'>"+htmlMap.get(tEm.getValue().get("position").split("-")[0]));
+								htmlMap.put(tEm.getValue().get("position").split("-")[1], htmlMap.get(tEm.getValue().get("position").split("-")[1])+"</div>");
+							}
 						}
 					}
 				}else{
@@ -207,13 +207,13 @@ public class TargetIndexService {
 		    }
 			fos.close();
 			
-//			Path filePath = Paths.get(copyFilePath);
-//			//############### 파일 소유자 변경 ###############
-//			UserPrincipal hostUid = filePath.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByName("saltlux");
-//			Files.setOwner(filePath, hostUid);
-//			//############### 파일 그룹 변경 ################
-//			GroupPrincipal group =filePath.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByGroupName("saltlux");
-//			Files.getFileAttributeView(filePath, PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS).setGroup(group);
+			Path filePath = Paths.get(copyFilePath);
+			//############### 파일 소유자 변경 ###############
+			UserPrincipal hostUid = filePath.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByName("saltlux");
+			Files.setOwner(filePath, hostUid);
+			//############### 파일 그룹 변경 ################
+			GroupPrincipal group =filePath.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByGroupName("saltlux");
+			Files.getFileAttributeView(filePath, PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS).setGroup(group);
 			
 		}catch(Exception e) {
 			e.printStackTrace();

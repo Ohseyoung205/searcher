@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.saltlux.dor.api.IN2IndexManager;
+import com.saltlux.dor.api.IN2StdCommander;
 import com.saltlux.dor.api.IN2StdDeleter;
 import com.saltlux.dor.api.IN2StdFieldUpdater;
 import com.saltlux.dor.api.IN2StdIndexer;
@@ -27,28 +28,16 @@ public class HtmIndexing {
 	 @Value("${in2.dor.host}")
 	 private String SERVER_IP;
 	 
-	 @Value("${in2.dor.index.document}")
-	 private String INDEX_NAME;
-	 
-	 @Value("${in2.dor.index.source}")
-	 private String INDEX_SOURCE; //교체할 색인명
-	 
-	 @Value("${in2.dor.index.target}")
-	 private String INDEX_TARGET;	//교체돨 색인명
-	 
-
-	 
-	
-	 public boolean indexingYn(String domain) {
-		 IN2IndexManager mananger = new IN2IndexManager();
-		 mananger.setServer(SERVER_IP, SERVER_PORT);
-		 mananger.newManager();
-		 boolean bln = mananger.replaceIndex(INDEX_SOURCE, INDEX_TARGET);
-
-		 return bln;
+	 public boolean dropIndex(String indexName) {
+		 IN2StdCommander deleter = new IN2StdCommander();
+	    	deleter.setSocketTimeOut(1000);
+	    	deleter.newQuery();
+	    	deleter.setServer(SERVER_IP, SERVER_PORT);
+	    return deleter.dropIndex(indexName, "admin", "");
 	 }
 	 
-	 public boolean indexing(List<Document> dataSet, String domain, int tmpInt) {
+	 
+	 public boolean indexing(List<Document> dataSet, String indexName, int tmpInt) {
 
 			IN2StdIndexer in2StdIndexer = new IN2StdIndexer();
 		    in2StdIndexer.setServer(SERVER_IP, SERVER_PORT);
@@ -60,7 +49,7 @@ public class HtmIndexing {
 		    	Document data = itr.next();
 		         	
 		    	in2StdIndexer.newDocument();
-		        in2StdIndexer.setIndex(INDEX_NAME);
+		        in2StdIndexer.setIndex(indexName);
 
 //			        if(data.getContent().getBytes().length > 32000) {
 //			        	System.out.println("========초");

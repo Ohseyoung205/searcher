@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import com.saltlux.khnp.searcher.indexer.common.Consts;
 import com.saltlux.khnp.searcher.indexer.indexer.HtmIndexing;
 import com.saltlux.khnp.searcher.indexer.vo.Document;
+import com.saltlux.khnp.searcher.indexer.vo.IndexVo;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,7 +47,7 @@ public class IndexTarget {
 	@Value("${pattern3.ptns2}")
     private String ptnPtns2;
 	
-public boolean indexTarget(String domain, String fileNm) throws Exception{
+public IndexVo indexTarget(String domain, String fileNm, String indexName, IndexVo indexVo) throws Exception{
 		
 		String title1_pattern1 = ptnTitle1+Consts.TWOSPACE+".*"; // 1.0, 2.0 ,3.0 구분
 		String title2_pattern1 = ptnTitle2+Consts.TWOSPACE+".*"; // 1.1, 1.2, 1.3 ...2.1
@@ -57,9 +58,7 @@ public boolean indexTarget(String domain, String fileNm) throws Exception{
 			
 		String readLine = null ;
 	    int lineNum = 0;			//라인 넘버
-	    int startNum = 0;			//시작
-	    int startLine = 0;
-	    String tagStr = "";
+	    
 	    Pattern tags = Pattern.compile("<(/)?([a-zA-Z]*)(\\s[a-zA-Z]*=[^>]*)?(\\s)*(/)?>");
 	    Pattern ptns1 = Pattern.compile("<IMG src=.*?>(.*?)"); //이미지 패턴
 	    Pattern ptns2 = Pattern.compile("^그림 [1-9.-]{2,8}");
@@ -67,19 +66,11 @@ public boolean indexTarget(String domain, String fileNm) throws Exception{
 	    Pattern ptns4 = Pattern.compile(ptnPtns2);
 	    
 	    Matcher m;
-		String title1 = "";
-		String tmpStr = "";
-		String tmpStr1 = "";
 		boolean saveBln = false;
-		
-		String imgChk = "";
-		int imgLineNum = 0;
 		int numberChk = 0;
 		
-		String level = "";
-		String number1 = "";		
-		String number2 = "";
-		String number3 = "";
+		indexVo.setStartLine(0);
+		indexVo.setImgLineNum(0);
 		
 		try{
 			File file = new File(htmFilePath+File.separator+domain+File.separator+fileNm);
@@ -89,114 +80,166 @@ public boolean indexTarget(String domain, String fileNm) throws Exception{
 	            map = new HashMap<String, String>();
 	            lineNum++;
 	            if("<BODY>".equals(readLine)) {
-	            	startNum = lineNum;
+	            	indexVo.setStartNum(lineNum);
 	            }
 	            	
-	            if(startNum > 0) {
+	            if(indexVo.getStartNum() > 0) {
 	            	
 	            	saveBln = false;
 	            	//######## 이미지 #############
 	            	m = tags.matcher(readLine); //태그삭제
-	            	tmpStr = m.replaceAll("");
+	            	indexVo.setTmpStr(m.replaceAll(""));
 	            	
-	            	tagStr = m.replaceAll("").replaceAll("&nbsp;", " ").replaceAll("&#9552;", "");
-	            	if(tagStr.matches(title1_pattern1)) {			//1 단계
-	            		number1 = tagStr.split(" ")[0];
-	            		if("B".equals(number1)) {
-	            			number1 = tagStr.split(" ")[0]+" "+tagStr.split(" ")[1];
+	            	indexVo.setTagStr(m.replaceAll("").replaceAll("&nbsp;", " ").replaceAll("&#9552;", ""));
+	            	
+	          
+	            	if(indexVo.getTagStr().matches(title1_pattern1)) {			//1 단계
+	            		indexVo.setNumber1(indexVo.getTagStr().split(" ")[0]);
+	            		if("B".equals(indexVo.getNumber1())) {
+	            			indexVo.setNumber1(indexVo.getTagStr().split(" ")[0]+" "+indexVo.getTagStr().split(" ")[1]);
 	            		}
-           				number2 = "";
-           				number3 = "";
-           				level = "1";
-           				startLine = lineNum;
-               		}else if(tagStr.matches(title2_pattern1)) {		//2 단계
-               			number2 = tagStr.split(" ")[0];
-               			if("B".equals(number2)) {
-               				number1 = tagStr.split(" ")[0]+" "+tagStr.split(" ")[1];
+           				indexVo.setNumber2("");
+           				indexVo.setNumber3("");
+           				indexVo.setLevel("1");
+           				indexVo.setStartLine(lineNum);
+               		}else if(indexVo.getTagStr().matches(title2_pattern1)) {		//2 단계
+               			indexVo.setNumber2(indexVo.getTagStr().split(" ")[0]);
+               			if("B".equals(indexVo.getNumber2())) {
+               				indexVo.setNumber2(indexVo.getTagStr().split(" ")[0]+" "+indexVo.getTagStr().split(" ")[1]);
                			}
-           				number3 = "";
-            			level = "2";
-            			startLine = lineNum;
-               		}else if(tagStr.matches(title3_pattern1)) {		//3 단계
-               			number3 = tagStr.split(" ")[0];
-               			if("B".equals(number3)) {
-               				number1 = tagStr.split(" ")[0]+" "+tagStr.split(" ")[1];
+           				indexVo.setNumber3("");
+            			indexVo.setLevel("2");
+            			indexVo.setStartLine(lineNum);
+               		}else if(indexVo.getTagStr().matches(title3_pattern1)) {		//3 단계
+               			indexVo.setNumber3(indexVo.getTagStr().split(" ")[0]);
+               			if("B".equals(indexVo.getNumber3())) {
+               				indexVo.setNumber3(indexVo.getTagStr().split(" ")[0]+" "+indexVo.getTagStr().split(" ")[1]);
                			}
-           				level = "3";
-           				startLine = lineNum;
+           				indexVo.setLevel("3");
+           				indexVo.setStartLine(lineNum);
                		}
 	            	
 	            	m = ptns1.matcher(readLine);
 	            	while (m.find()) {
-	            		imgLineNum = lineNum;
-	            		imgChk = "chk";
+	            		indexVo.setImgLineNum(lineNum);
+	            		indexVo.setImgChk("chk");
 	            	}
-	            	if("chk".equals(imgChk)) {
-	            		m = ptns2.matcher(tmpStr);
+	            	if("chk".equals(indexVo.getImgChk())) {
+	            		m = ptns2.matcher(indexVo.getTmpStr());
 		            	while (m.find()){
-		            		tmpStr1 = m.group(0);
-		            		tmpStr = tmpStr.replaceAll("&nbsp;", "");
-		            		if(tmpStr.contains(tmpStr1)) {
-		            			imgChk = "";
+		            		indexVo.setTmpStr1(m.group(0));
+		            		indexVo.setTmpStr(indexVo.getTmpStr().replaceAll("&nbsp;", ""));
+		            		if(indexVo.getTmpStr().contains(indexVo.getTmpStr1())) {
+		            			indexVo.setImgChk("");
 		            			saveBln = true;
-		            			title1 = tmpStr1;
-			            		startLine = imgLineNum;
+		            			indexVo.setTitle1(indexVo.getTmpStr1());
+			            		indexVo.setStartLine(indexVo.getImgLineNum());
 		            		}
 		            	}
 	            	}
 	            	//##########  표, 운전제한조건 ###############
-	            	m = ptns3.matcher(tmpStr);
+	            	m = ptns3.matcher(indexVo.getTmpStr());
 	            	while (m.find()) {
-	            		tmpStr1 = m.group(0);
-	            		tmpStr = tmpStr.replaceAll("&nbsp;", "");
-	            		if(tmpStr.contains(tmpStr1)) {
+	            		indexVo.setTmpStr1(m.group(0));
+	            		indexVo.setTmpStr(indexVo.getTmpStr().replaceAll("&nbsp;", ""));
+	            		if(indexVo.getTmpStr().contains(indexVo.getTmpStr1())) {
 	            			saveBln = true;
-		            		title1 = tmpStr1;
-		            		startLine = lineNum;
+		            		indexVo.setTitle1(indexVo.getTmpStr1());
+		            		indexVo.setStartLine(lineNum);
 	            		}
 	            	}
 	            	
 	            	//########## 점검요구사항  #############
-	            	m = ptns4.matcher(tmpStr.trim());
+	            	m = ptns4.matcher(indexVo.getTmpStr().trim());
 	            	while (m.find()) {
-	            		if(!tmpStr.contains("(계속)")) {
-	            			tmpStr1 = m.group(0);
-	            			if(tmpStr.contains("&nbsp;&nbsp;")) {
+	            		if(!indexVo.getTmpStr().contains("(계속)")) {
+	            			indexVo.setTmpStr1(m.group(0));
+	            			if(indexVo.getTmpStr().contains("&nbsp;&nbsp;")) {
 			            		saveBln = true;
-			            		title1 = tmpStr1;
-			            		startLine = lineNum;
-	            			}else if(!tmpStr.contains("&nbsp;")){
-	            				if(tmpStr.length() < 20) {
+			            		indexVo.setTitle1(indexVo.getTmpStr1());
+			            		indexVo.setStartLine(lineNum);
+	            			}else if(!indexVo.getTmpStr().contains("&nbsp;")){
+	            				if(indexVo.getTmpStr().length() < 20) {
 				            		saveBln = true;
-				            		title1 = tmpStr1;
-				            		startLine = lineNum;
+				            		indexVo.setTitle1(indexVo.getTmpStr1());
+				            		indexVo.setStartLine(lineNum);
 	            				}
 	            			}
 	            		}
 	            	}
+	            	
+	            	if("제 1 편".equals(indexVo.getTagStr())) {
+        				indexVo.setIndexgb("index");
+        				indexVo.setBigTitleGb("1");
+       				}else if("제 2 편".equals(indexVo.getTagStr())) {
+       					indexVo.setIndexgb("index");
+       					indexVo.setBigTitleGb("2");
+       				}else if("제 3 편".equals(indexVo.getTagStr())) {
+       					indexVo.setIndexgb("index");
+       					indexVo.setBigTitleGb("3");
+       				}else if("B 2.0".equals(indexVo.getRealStr())) {
+       					indexVo.setIndexgb("index");
+        				indexVo.setBigTitleGb("1");
+       				}
+    				
+    				if("".equals(indexVo.getBigTitleGb())) {
+    					indexVo.setIndexgb("index");
+        				indexVo.setBigTitleGb("1");
+        			}      
+	            	
+	            	
+	            	
+	            	if("".equals(indexVo.getNumber1())) {
+        				if(!"".equals(indexVo.getNumber2())) {
+        					indexVo.setNumber1(indexVo.getNumber2().substring(0, indexVo.getNumber2().length()-1)+"0");
+        				}
+        			}
 
 	            	if(saveBln) {
 	            		numberChk++;
-	            		String key = "KEY_"+Consts.BIG_TITLE1+title1+startLine;
+	            		String key = "";
+		            	if("1".equals(indexVo.getBigTitleGb())) {
+	        				key = "KEY_"+Consts.BIG_TITLE1+indexVo.getTitle1()+indexVo.getStartLine();
+	       				}else if("2".equals(indexVo.getBigTitleGb())) {
+	       					key = "KEY_"+Consts.BIG_TITLE2+indexVo.getTitle1()+indexVo.getStartLine();
+	       				}else if("3".equals(indexVo.getBigTitleGb())) {
+	       					key = "KEY_"+Consts.BIG_TITLE2+indexVo.getTitle1()+indexVo.getStartLine();
+	       				}
+		            	
 	            		
-	            		map.put("TITLE0", Consts.BIG_TITLE1);
-       					map.put("TITLE1", title1.trim());
+	            		if("1".equals(indexVo.getBigTitleGb())) {
+       						map.put("TITLE0", Consts.BIG_TITLE1);
+       					}else if("2".equals(indexVo.getBigTitleGb())) {
+       						map.put("TITLE0", Consts.BIG_TITLE2);
+       					}else if("3".equals(indexVo.getBigTitleGb())) {
+       						map.put("TITLE0", Consts.BIG_TITLE3);
+       					}
+	            		
+       					map.put("TITLE1", indexVo.getTitle1().trim());
        					map.put("TITLE2", "");
        					map.put("TITLE3", "");
        					map.put("TITLE4", "");
        					map.put("TITLE4_1", "");
-						map.put("NUMBER0", Consts.BIG_NUMBER1);
-						map.put("NUMBER1", number1);
-						map.put("NUMBER2", number2);
-						map.put("NUMBER3", number3);
+       					
+       					if("1".equals(indexVo.getBigTitleGb())) {
+       						map.put("NUMBER0", Consts.BIG_NUMBER1);
+       					}else if("2".equals(indexVo.getBigTitleGb())) {
+       						map.put("NUMBER0", Consts.BIG_NUMBER2);
+       					}else if("3".equals(indexVo.getBigTitleGb())) {
+       						map.put("NUMBER0", Consts.BIG_NUMBER3);
+       					}
+				
+						map.put("NUMBER1", indexVo.getNumber1());
+						map.put("NUMBER2", indexVo.getNumber2());
+						map.put("NUMBER3", indexVo.getNumber3());
 						map.put("NUMBER4", "");
-						map.put("CONTENT", title1.trim());
-						map.put("STARTLINE", startLine+"");
-						map.put("ENDLINE", startLine+"");
-						map.put("SORT", startLine+"");
-						map.put("LEVEL", level);
+						map.put("CONTENT", indexVo.getTitle1().trim());
+						map.put("STARTLINE", indexVo.getStartLine()+"");
+						map.put("ENDLINE", lineNum+"");
+						map.put("SORT", indexVo.getStartLine()+"");
+						map.put("LEVEL", indexVo.getLevel());
 						map.put("ETC", "");
-						map.put("FILENAME", "1.htm");
+						map.put("FILENAME", fileNm);
 							
 						resultMap.put(key, map);
 	            	}
@@ -204,7 +247,8 @@ public boolean indexTarget(String domain, String fileNm) throws Exception{
 	        }
 	        bufReader.close();
 	    }catch ( IOException e ) {
-	        return false;
+	    	indexVo.setBln(false);
+	        return indexVo;
 	    }
 		
 		TreeMap<String, Map<String, String>> tm = new TreeMap<String, Map<String, String>>(resultMap);
@@ -247,10 +291,13 @@ public boolean indexTarget(String domain, String fileNm) throws Exception{
 		}
 		
 		if(voList.size() > 0) {
-			return htmIndexing.indexing(voList, domain, 2);
+			boolean bln = false;
+			bln = htmIndexing.indexing(voList, indexName, 2);
+			indexVo.setBln(bln);
+			return indexVo;
 		}else {
-			return true;
+			indexVo.setBln(true);
+			return indexVo;
 		}
-		
 	}
 }

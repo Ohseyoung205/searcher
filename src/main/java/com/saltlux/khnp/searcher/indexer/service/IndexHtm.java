@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import com.saltlux.khnp.searcher.indexer.common.Consts;
 import com.saltlux.khnp.searcher.indexer.indexer.HtmIndexing;
 import com.saltlux.khnp.searcher.indexer.vo.Document;
+import com.saltlux.khnp.searcher.indexer.vo.IndexVo;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,8 +41,8 @@ public class IndexHtm {
 	@Value("${pattern1.title3}")
     private String ptnTitle3;
 	
-	public boolean indexHtm(String domain, String fileNm) throws Exception{
-		System.out.println("domain ::"+domain+" || fileNm::"+fileNm);
+	public IndexVo indexHtm(String domain, String fileNm, String indexName, IndexVo indexVo) throws Exception{
+	
 		String title1_pattern1 = ptnTitle1+Consts.TWOSPACE+".*"; // 1.0, 2.0 ,3.0 구분
 		String title2_pattern1 = ptnTitle2+Consts.TWOSPACE+".*";// 1.1, 1.2, 1.3 ...2.1
 		String title3_pattern1 = ptnTitle3+Consts.TWOSPACE+".*"; //1.1.0,1.1.1
@@ -66,34 +67,15 @@ public class IndexHtm {
 		
 		String readLine = null ;
 	    int lineNum = 0;			//라인 넘버
-	    int startNum = 0;			//시작
-	    int startLine = 0;
-	    String tagStr = "";
-	    String befo1 = "";
-	    String befo2 = "";
-	    String befo3 = "";
 	    Pattern tags = Pattern.compile("<(/)?([a-zA-Z]*)(\\s[a-zA-Z]*=[^>]*)?(\\s)*(/)?>");
 	    Pattern ptns = Pattern.compile("<P CLASS=HStyle(8|16|18|29).*?>(.*?)<SPAN style='HWP-TAB:1;'>");
 	    Matcher m;
-	    String level = "";
-	    String number1 = "";		
-		String number2 = "";
-		String number3 = "";
-		String title1 = "";
-		String title2 = "";
-		String title3 = "";
-		String title4 = "";
-		String title4_1 = "";
-		String etc = "";
-			
-		String tmpStr = "";
-		String tmpStr1 = "";
-		String tmpStr2 = "";
-			
-		String tmpGb = "";
-		String memberGb = "";
-		String indexgb = "";
-		String bigTitleGb = "1";
+	    
+	    indexVo.setStartLine(0);
+	    indexVo.setNumber1("");
+	    indexVo.setNumber2("");
+	    indexVo.setNumber3("");
+	    indexVo.setNumber4("");
 		
 		try{
 			File file = new File(htmFilePath+File.separator+domain+File.separator+fileNm);
@@ -103,177 +85,209 @@ public class IndexHtm {
 	            map = new HashMap<String, String>();
 	            lineNum++;
 	            if("<BODY>".equals(readLine)) {
-	            	startNum = lineNum;
+	            	indexVo.setStartNum(lineNum);
 	            }
 	            	
-	            if(startNum > 0) {
-	            	tmpStr = readLine;
+	            if(indexVo.getStartNum() > 0) {
+	            	indexVo.setTmpStr(readLine);
 	            	
 	            	m = ptns.matcher(readLine);
-	            	tmpStr1 = "";
+	            	indexVo.setTmpStr1("");
 	            	while (m.find()) {
-	            		tmpStr1 = m.group(0);
+	            		indexVo.setTmpStr1(m.group(0));
 	            	}
-	            	tmpStr = tmpStr.replace(tmpStr1, "");
-	            	tmpStr1 = tags.matcher(tmpStr1).replaceAll("").replaceAll("&nbsp;", ""); //tag 삭제
+	            	indexVo.setTmpStr(indexVo.getTmpStr().replace(indexVo.getTmpStr1(), ""));
+	            	indexVo.setTmpStr1(tags.matcher(indexVo.getTmpStr1()).replaceAll("").replaceAll("&nbsp;", ""));
 	            		
-	            	m = tags.matcher(tmpStr);
-	                tagStr = m.replaceAll("").replaceAll("&nbsp;", " ").replaceAll("&#9552;", "");
-	                
-                	if(!tagStr.trim().matches(except_pattern1) && !tagStr.trim().matches(except_pattern2) && !tagStr.trim().matches(except_pattern3)
-                			&& !tagStr.trim().matches(except_pattern4) && !tagStr.trim().matches(except_pattern5) && !tagStr.trim().matches(except_pattern6)
-                			&& !tagStr.trim().matches(except_pattern7) && !tagStr.trim().matches(except_pattern8) && !tagStr.trim().matches(except_pattern9)
-                			&& !tagStr.trim().matches(except_pattern10) && !tagStr.trim().matches(except_pattern11)) {
+	            	m = tags.matcher(indexVo.getTmpStr());
+	                indexVo.setTagStr(m.replaceAll("").replaceAll("&nbsp;", " ").replaceAll("&#9552;", ""));
+                	if(!indexVo.getTagStr().trim().matches(except_pattern1) && !indexVo.getTagStr().trim().matches(except_pattern2) && !indexVo.getTagStr().trim().matches(except_pattern3)
+                			&& !indexVo.getTagStr().trim().matches(except_pattern4) && !indexVo.getTagStr().trim().matches(except_pattern5) && !indexVo.getTagStr().trim().matches(except_pattern6)
+                			&& !indexVo.getTagStr().trim().matches(except_pattern7) && !indexVo.getTagStr().trim().matches(except_pattern8) && !indexVo.getTagStr().trim().matches(except_pattern9)
+                			&& !indexVo.getTagStr().trim().matches(except_pattern10) && !indexVo.getTagStr().trim().matches(except_pattern11)) {
                 		
-                		if(tagStr.matches(title1_pattern1)) {			//1 단계
-                			if(!befo1.equals(tagStr.trim())) {
-                   				number1 = tagStr.split(" ")[0];
-                   				if("B".equals(number1)) {
-                   					memberGb = "Y";
-                   					number1 = tagStr.split(" ")[0]+" "+tagStr.split(" ")[1];
+                		if(indexVo.getTagStr().matches(title1_pattern1)) {			//1 단계
+                			if(!indexVo.getBefo1().equals(indexVo.getTagStr().trim())) {
+                   				indexVo.setNumber1(indexVo.getTagStr().split(" ")[0]);
+                   				if("B".equals(indexVo.getNumber1())) {
+                   					indexVo.setMemberGb("Y");
+                   					indexVo.setNumber1(indexVo.getTagStr().split(" ")[0]+" "+indexVo.getTagStr().split(" ")[1]);
                    				}
-                   				number2 = "";
-                   				number3 = "";
-                   				title1 = tagStr.replace(number1, "");
-                   				title2 = "";
-                   				title3 = "";
-                   				level = "1";
-                   				indexgb= "index";
-                   				startLine = lineNum;
-                   				befo1 = tagStr.trim();
+                   				indexVo.setNumber2("");
+                   				indexVo.setNumber3("");
+                   				indexVo.setTitle1(indexVo.getTagStr().replace(indexVo.getNumber1(), ""));
+                   				indexVo.setTitle2("");
+                   				indexVo.setTitle3("");
+                   				indexVo.setLevel("1");
+                   				indexVo.setIndexgb("index");
+                   				indexVo.setStartLine(lineNum);
+                   				indexVo.setBefo1(indexVo.getTagStr().trim());
                    			}
-                   		}else if(tagStr.matches(title2_pattern1)) {		//2 단계
-                   			if(!befo2.equals(tagStr.trim())) {
-                   				number2 = tagStr.split(" ")[0];
-                   				if("B".equals(number2)) {
-                   					memberGb = "Y";
-                   					number2 = tagStr.split(" ")[0]+" "+tagStr.split(" ")[1];
+                   		}else if(indexVo.getTagStr().matches(title2_pattern1)) {		//2 단계
+                   			if(!indexVo.getBefo2().equals(indexVo.getTagStr().trim())) {
+                   				indexVo.setNumber2(indexVo.getTagStr().split(" ")[0]);
+                   				if("B".equals(indexVo.getNumber2())) {
+                   					indexVo.setMemberGb("Y");
+                   					indexVo.setNumber2(indexVo.getTagStr().split(" ")[0]+" "+indexVo.getTagStr().split(" ")[1]);
                    				}
-                   				number3 = "";
-                    			title2 = tagStr.replace(number2, "");
-                    			title3 = "";
-                    			level = "2";
-                    			indexgb= "index";
-                    			startLine = lineNum;
-                    			befo2 = tagStr.trim();
+                   				indexVo.setNumber3("");
+                    			indexVo.setTitle2(indexVo.getTagStr().replace(indexVo.getNumber2(), ""));
+                    			indexVo.setTitle3("");
+                    			indexVo.setLevel("2");
+                    			indexVo.setIndexgb("index");
+                    			indexVo.setStartLine(lineNum);
+                    			indexVo.setBefo2(indexVo.getTagStr().trim());
                     		}
-                   		}else if(tagStr.matches(title3_pattern1)) {		//3 단계
-                   			String tmpNumber = tagStr.split(" ")[0];
-                   			if(!"2.2.1".equals(tmpNumber)) {
-                   				if(!befo3.equals(tagStr.trim())) {
-                       				number3 = tagStr.split(" ")[0];
-                       				if("B".equals(number3)) {
-                       					memberGb = "Y";
-                       					number3 = tagStr.split(" ")[0]+" "+tagStr.split(" ")[1];
+                   		}else if(indexVo.getTagStr().matches(title3_pattern1)) {		//3 단계
+                   			indexVo.setTmpNumber(indexVo.getTagStr().split(" ")[0]);
+                   			if(!"2.2.1".equals(indexVo.getTmpNumber())) {
+                   				if(!indexVo.getBefo3().equals(indexVo.getTagStr().trim())) {
+                       				indexVo.setNumber3(indexVo.getTagStr().split(" ")[0]);
+                       				if("B".equals(indexVo.getNumber3())) {
+                       					indexVo.setMemberGb("Y");
+                       					indexVo.setNumber3(indexVo.getTagStr().split(" ")[0]+" "+indexVo.getTagStr().split(" ")[1]);
                        				}
-                       				title3 = tagStr.replace(number3, "");
-                       				level = "3";
-                       				indexgb= "index";
-                       				startLine = lineNum;
-                       				befo3 = tagStr.trim();
+                       				indexVo.setTitle3(indexVo.getTagStr().replace(indexVo.getNumber3(), ""));
+                       				indexVo.setLevel("3");
+                       				indexVo.setIndexgb("index");
+                       				indexVo.setStartLine(lineNum);
+                       				indexVo.setBefo3(indexVo.getTagStr().trim());
                        			}
                    			}
                    		}
                 			
-               			if(!tagStr.matches(title1_pattern1) && !tagStr.matches(title2_pattern1)
-               					&& !tagStr.matches(title3_pattern1)) {
-               				if(!"".equals(tmpStr1) && !"|".equals(tagStr)) {
-                				if(!"1.".equals(tmpStr1.trim()) && !"2.".equals(tmpStr1.trim()) && !"3.".equals(tmpStr1.trim()) 
-                						&& !"운전제한조건 3.4.10".equals(tmpStr1.trim())) {
-                					if(!"1".equals(tmpGb)) {
-                    					tmpStr2 = tmpStr1.replace("(계속)", "").trim();
-                    					tmpStr2 = number1+number2+number3+tmpStr2;
-                    					indexgb= "target";
+               			if(!indexVo.getTagStr().matches(title1_pattern1) && !indexVo.getTagStr().matches(title2_pattern1)
+               					&& !indexVo.getTagStr().matches(title3_pattern1)) {
+               				if(!"".equals(indexVo.getTmpStr1()) && !"|".equals(indexVo.getTagStr())) {
+                				if(!"1.".equals(indexVo.getTmpStr1().trim()) && !"2.".equals(indexVo.getTmpStr1().trim()) && !"3.".equals(indexVo.getTmpStr1().trim()) 
+                						&& !"운전제한조건 3.4.10".equals(indexVo.getTmpStr1().trim())) {
+                					if(!"1".equals(indexVo.getTmpGb())) {
+                    					indexVo.setTmpStr2(indexVo.getTmpStr1().replace("(계속)", "").trim());
+                    					indexVo.setTmpStr2(indexVo.getNumber1()+indexVo.getNumber2()+indexVo.getNumber3()+indexVo.getTmpStr2());
                     				}
-                    				startLine = lineNum;
-                    				tmpGb = "1";
+                					indexVo.setIndexgb("target");
+                    				indexVo.setStartLine(lineNum);
+                    				indexVo.setTmpGb("1");
                 				}
                 			}else {
-                				tmpGb = "";
+                				indexVo.setIndexgb("index");
+                				indexVo.setTmpGb("");
                 			}
                				
-                			String key = "KEY_"+Consts.BIG_TITLE1+number1+title1+number2+title2+number3+title3+tmpStr2;
-                			String realStr = tagStr.replace("|", "\r");
+                			indexVo.setRealStr(indexVo.getTagStr().replace("|", "\r"));
                 			
-                			if("제 1 편".equals(realStr)) {
-                				indexgb= "index";
-                				bigTitleGb = "1";
-                				key = "KEY_"+Consts.BIG_TITLE1+number1+title1+number2+title2+number3+title3+tmpStr2;
-               				}else if("제 2 편".equals(realStr)) {
-               					indexgb= "index";
-               					bigTitleGb = "2";
-               					key = "KEY_"+Consts.BIG_TITLE2+number1+title1+number2+title2+number3+title3+tmpStr2;
-               				}else if("제 3 편".equals(realStr)) {
-               					indexgb= "index";
-               					bigTitleGb = "3";
-               					key = "KEY_"+Consts.BIG_TITLE3+number1+title1+number2+title2+number3+title3+tmpStr2;
-               				}
-                			if("".equals(number1)) {
-                				indexgb= "index";
-                			}
-                			if (resultMap.containsKey(key)) {
-                				String content = resultMap.get(key).get("CONTENT");
-                				String strTitle = resultMap.get(key).get("TITLE4_1");
-                				resultMap.get(key).put("CONTENT",content + realStr);
-                				tmpStr1 = tmpStr1.replace("(계속)", "");
-                				if(!strTitle.trim().equals(tmpStr1.trim())) {
-                					if(!"".equals(tmpStr1)) {
-                						if(!"1.".equals(tmpStr1.trim()) && !"2.".equals(tmpStr1.trim()) && !"3.".equals(tmpStr1.trim())
-                								&& !"운전제한조건 3.4.10".equals(tmpStr1.trim())) {
-                							resultMap.get(key).put("TITLE4_1", strTitle+" "+tmpStr1);
-                						}
-                					}
+                			if("".equals(indexVo.getNumber1())) {
+                				indexVo.setIndexgb("index");
+                				if(!"".equals(indexVo.getNumber2())) {
+                					indexVo.setNumber1(indexVo.getNumber2().substring(0, indexVo.getNumber2().length()-1)+"0");
                 				}
-               					resultMap.get(key).put("ENDLINE", lineNum+"");
-               				}else {
-               					if("1".equals(bigTitleGb)) {
-               						map.put("TITLE0", Consts.BIG_TITLE1);
-               					}else if("2".equals(bigTitleGb)) {
-               						map.put("TITLE0", Consts.BIG_TITLE2);
-               					}else if("3".equals(bigTitleGb)) {
-               						map.put("TITLE0", Consts.BIG_TITLE3);
-               					}
-               					
-               					
-               					map.put("TITLE1", title1.trim());
-               					map.put("TITLE2", title2.trim());
-               					map.put("TITLE3", title3.trim());
-               					map.put("TITLE4", "");
-               					if(!"1.".equals(tmpStr1.trim()) && !"2.".equals(tmpStr1.trim()) && !"3.".equals(tmpStr1.trim())
-               							&& !"운전제한조건 3.4.10".equals(tmpStr1.trim())) {
-               						map.put("TITLE4_1", tmpStr1.replace("(계속)", "").trim());
-               					}else {
-               						map.put("TITLE4_1", "");
-               					}
-               					if("1".equals(bigTitleGb)) {
-               						map.put("NUMBER0", Consts.BIG_NUMBER1);
-               					}else if("2".equals(bigTitleGb)) {
-               						map.put("NUMBER0", Consts.BIG_NUMBER2);
-               					}else if("3".equals(bigTitleGb)) {
-               						map.put("NUMBER0", Consts.BIG_NUMBER3);
-               					}
-								
-								map.put("NUMBER1", number1);
-								map.put("NUMBER2", number2);
-								map.put("NUMBER3", number3);
-								map.put("NUMBER4", "");
-								map.put("CONTENT", realStr);
-								map.put("STARTLINE", startLine+"");
-								map.put("ENDLINE", lineNum+"");
-								map.put("LEVEL", level);
-								map.put("ETC", "");
-								map.put("FILENAME", fileNm);
-								map.put("INDEXGB", indexgb);
-									
-								resultMap.put(key, map);
                 			}
+            
+                			if("".equals(indexVo.getIndexgb())) {
+                				if("B".equals(indexVo.getNumber1().split(" ")[0])) {
+                					indexVo.setIndexgb("target");
+                					indexVo.setMemberGb("Y");
+                				}
+                			}
+                			
+                			if(!"".equals(indexVo.getRealStr().trim())) {
+               					indexVo.setStrStart("start");
+               				}
+                			
+                			if(!"".equals(indexVo.getStrStart())) {
+                				if("제 1 편".equals(indexVo.getRealStr())) {
+                    				indexVo.setIndexgb("index");
+                    				indexVo.setBigTitleGb("1");
+                   				}else if("제 2 편".equals(indexVo.getRealStr())) {
+                   					indexVo.setIndexgb("index");
+                   					indexVo.setBigTitleGb("2");
+                   				}else if("제 3 편".equals(indexVo.getRealStr())) {
+                   					indexVo.setIndexgb("index");
+                   					indexVo.setBigTitleGb("3");
+                   				}else if("B 2.0".equals(indexVo.getRealStr())) {
+                   					indexVo.setIndexgb("index");
+                    				indexVo.setBigTitleGb("1");
+                   				}
+                				
+                				if("".equals(indexVo.getBigTitleGb())) {
+                					indexVo.setIndexgb("index");
+                    				indexVo.setBigTitleGb("1");
+                    			}            
+
+                    			String key = "";
+                				if("1".equals(indexVo.getBigTitleGb())) {
+                					key = "KEY_"+Consts.BIG_TITLE1+indexVo.getNumber1()+indexVo.getTitle1()+indexVo.getNumber2()+indexVo.getTitle2()+indexVo.getNumber3()+indexVo.getTitle3()+indexVo.getTmpStr2();
+                							;
+               					}else if("2".equals(indexVo.getBigTitleGb())) {
+               						key = "KEY_"+Consts.BIG_TITLE2+indexVo.getNumber1()+indexVo.getTitle1()+indexVo.getNumber2()+indexVo.getTitle2()+indexVo.getNumber3()+indexVo.getTitle3()+indexVo.getTmpStr2();
+               					}else if("3".equals(indexVo.getBigTitleGb())) {
+               						key = "KEY_"+Consts.BIG_TITLE3+indexVo.getNumber1()+indexVo.getTitle1()+indexVo.getNumber2()+indexVo.getTitle2()+indexVo.getNumber3()+indexVo.getTitle3()+indexVo.getTmpStr2();
+               					}
+                				if (resultMap.containsKey(key)) {
+                    				indexVo.setContent(resultMap.get(key).get("CONTENT"));
+                    				indexVo.setStrTitle(resultMap.get(key).get("TITLE4_1"));
+                    				resultMap.get(key).put("CONTENT",indexVo.getContent() + indexVo.getRealStr());
+                    				indexVo.setTmpStr1(indexVo.getTmpStr1().replace("(계속)", ""));
+                    				if(!indexVo.getStrTitle().trim().equals(indexVo.getTmpStr1().trim())) {
+                    					if(!"".equals(indexVo.getTmpStr1())) {
+                    						if(!"1.".equals(indexVo.getTmpStr1().trim()) && !"2.".equals(indexVo.getTmpStr1().trim()) && !"3.".equals(indexVo.getTmpStr1().trim())
+                    								&& !"운전제한조건 3.4.10".equals(indexVo.getTmpStr1().trim())) {
+                    							resultMap.get(key).put("TITLE4_1", indexVo.getStrTitle()+" "+indexVo.getTmpStr1());
+                    						}
+                    					}
+                    				}
+                   					resultMap.get(key).put("ENDLINE", lineNum+"");
+                   				}else {
+                   					if("1".equals(indexVo.getBigTitleGb())) {
+                   						map.put("TITLE0", Consts.BIG_TITLE1);
+                   					}else if("2".equals(indexVo.getBigTitleGb())) {
+                   						map.put("TITLE0", Consts.BIG_TITLE2);
+                   					}else if("3".equals(indexVo.getBigTitleGb())) {
+                   						map.put("TITLE0", Consts.BIG_TITLE3);
+                   					}
+                   					
+                   					map.put("TITLE1", indexVo.getTitle1().trim());
+                   					map.put("TITLE2", indexVo.getTitle2().trim());
+                   					map.put("TITLE3", indexVo.getTitle3().trim());
+                   					map.put("TITLE4", "");
+                   					if(!"1.".equals(indexVo.getTmpStr1().trim()) && !"2.".equals(indexVo.getTmpStr1().trim()) && !"3.".equals(indexVo.getTmpStr1().trim())
+                   							&& !"운전제한조건 3.4.10".equals(indexVo.getTmpStr1().trim())) {
+                   						map.put("TITLE4_1", indexVo.getTmpStr1().replace("(계속)", "").trim());
+                   					}else {
+                   						map.put("TITLE4_1", "");
+                   					}
+                   					if("1".equals(indexVo.getBigTitleGb())) {
+                   						map.put("NUMBER0", Consts.BIG_NUMBER1);
+                   					}else if("2".equals(indexVo.getBigTitleGb())) {
+                   						map.put("NUMBER0", Consts.BIG_NUMBER2);
+                   					}else if("3".equals(indexVo.getBigTitleGb())) {
+                   						map.put("NUMBER0", Consts.BIG_NUMBER3);
+                   					}
+    								
+    								map.put("NUMBER1", indexVo.getNumber1());
+    								map.put("NUMBER2", indexVo.getNumber2());
+    								map.put("NUMBER3", indexVo.getNumber3());
+    								map.put("NUMBER4", "");
+    								map.put("CONTENT", indexVo.getRealStr());
+    								map.put("STARTLINE", indexVo.getStartLine()+"");
+    								map.put("ENDLINE", lineNum+"");
+    								map.put("LEVEL", indexVo.getLevel());
+    								map.put("ETC", "");
+    								map.put("FILENAME", fileNm);
+    								map.put("INDEXGB", indexVo.getIndexgb());
+    									
+    								resultMap.put(key, map);
+                    			}
+                    		}
                 		}
+                			
                 	}
 	            }
 	        }
 	        bufReader.close();
 	    }catch ( IOException e ) {
-	        return false;
+	    	indexVo.setBln(false);
+	        return indexVo;
 	    }
 		
 //		System.out.println("resultMap.size() ::"+resultMap.size());
@@ -317,13 +331,19 @@ public class IndexHtm {
 		}
 
 		if(voList.size() > 0) {
-			if("Y".equals(memberGb)) {
-				return htmIndexing.indexing(voList, domain, 3);
+			boolean bln = false;
+			if("Y".equals(indexVo.getMemberGb())) {
+				bln = htmIndexing.indexing(voList, indexName, 3);
+				indexVo.setBln(bln);
+				return indexVo;
 			}else {
-				return htmIndexing.indexing(voList, domain, 1);
+				bln = htmIndexing.indexing(voList, indexName, 1);
+				indexVo.setBln(bln);
+				return indexVo;
 			}
 		}else {
-			return true;
+			indexVo.setBln(false);
+			return indexVo;
 		}
 	}
 

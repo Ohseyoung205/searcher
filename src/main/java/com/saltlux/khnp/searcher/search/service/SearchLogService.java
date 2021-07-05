@@ -1,7 +1,8 @@
 package com.saltlux.khnp.searcher.search.service;
 
+import static com.saltlux.khnp.searcher.common.config.INDEX_FIELD.YYYYMMDD;
+
 import java.io.StringReader;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,24 +21,17 @@ import org.xml.sax.InputSource;
 import com.saltlux.dor.api.IN2StdSearcher;
 import com.saltlux.dor.api.IN2TMSOldOwlimSearch;
 import com.saltlux.dor.api.common.SearchObject;
-import com.saltlux.dor.api.common.filter.IN2Filter;
-import com.saltlux.dor.api.common.filter.IN2MultiFilter;
-import com.saltlux.dor.api.common.filter.IN2RangeFilter;
-import com.saltlux.dor.api.common.query.IN2BooleanQuery;
 import com.saltlux.dor.api.common.query.IN2Query;
 import com.saltlux.dor.api.common.query.IN2RangeQuery;
 import com.saltlux.dor.api.common.sort.IN2FieldSort;
 import com.saltlux.khnp.searcher.search.indexer.SearchLogIndexing;
-import com.saltlux.khnp.searcher.search.model.CustomDict;
 import com.saltlux.khnp.searcher.search.model.SearchLog;
 import com.saltlux.khnp.searcher.search.repository.CustomDictRepository;
 import com.saltlux.khnp.searcher.search.repository.SearchLogRepository;
 import com.saltlux.khnp.searcher.search.vo.IntegrationSearchResult;
 import com.saltlux.khnp.searcher.search.vo.SearchVo;
 
-import lombok.extern.slf4j.Slf4j;
-
-import static com.saltlux.khnp.searcher.common.config.INDEX_FIELD.YYYYMMDD;;
+import lombok.extern.slf4j.Slf4j;;
 
 
 @Slf4j
@@ -68,7 +62,7 @@ public class SearchLogService {
     }
 	
 	
-	@Scheduled(fixedRate=60*60*1000)
+	@Scheduled(fixedRate=10*60*1000)
     public  void searchLogIndex() {
     	IN2StdSearcher searcher = new IN2StdSearcher();
     	init(searcher);
@@ -171,11 +165,6 @@ public class SearchLogService {
         		documents.add(map);
         		cnt++;
             }
-            	
-            
-    		
-          
-            
         }
         return new IntegrationSearchResult(documents, cnt);
 

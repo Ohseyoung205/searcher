@@ -3,24 +3,31 @@ package com.saltlux.khnp.searcher.search.service;
 import static com.saltlux.khnp.searcher.common.config.INDEX_FIELD.CONTENTS;
 import static com.saltlux.khnp.searcher.common.config.INDEX_FIELD.NUMBER;
 import static com.saltlux.khnp.searcher.common.config.INDEX_FIELD.TITLE;
+import static com.saltlux.khnp.searcher.common.config.INDEX_FIELD.INDEXGB;
+import static com.saltlux.khnp.searcher.common.config.INDEX_FIELD.DOMAIN;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import com.saltlux.dor.api.IN2StdSearcher;
 import com.saltlux.dor.api.common.SearchObject;
+import com.saltlux.dor.api.common.filter.IN2TermsFilter;
 import com.saltlux.dor.api.common.query.IN2BooleanQuery;
 import com.saltlux.dor.api.common.query.IN2ParseQuery;
 import com.saltlux.dor.api.common.query.IN2PrefixQuery;
 import com.saltlux.dor.api.common.query.IN2Query;
+import com.saltlux.dor.api.common.query.IN2TermQuery;
 import com.saltlux.dor.api.common.sort.IN2FieldSort;
 import com.saltlux.dor.api.common.sort.IN2MultiSort;
+import com.saltlux.khnp.searcher.search.model.DomainTable;
+import com.saltlux.khnp.searcher.search.repository.DomainRepository;
 import com.saltlux.khnp.searcher.search.vo.IntegrationSearchResult;
 import com.saltlux.khnp.searcher.search.vo.SearchRequests;
 
@@ -36,28 +43,25 @@ public class SearchService {
     private String host;
     @Value("${in2.dor.port}")
     private Integer port;
-    @Value("${in2.dor.index.name6}")
-    private String index6;
-    @Value("${in2.dor.index.name7}")
-    private String index7;
+    
+    @Autowired
+	private DomainRepository repository;
 
-    private SearchObject init(SearchObject searcher, String gb){
+    private SearchObject init(SearchObject searcher, String indexName){
         searcher.setServer(host, port);
-        if("target".equals(gb)) {
-        	searcher.addIndex(index6);
-        }else if("table".equals(gb)){
-        	searcher.addIndex(index7);
-        }else {
-        	searcher.addIndex(index6);
-        	searcher.addIndex(index7);
-        }
+        searcher.addIndex(indexName);
         return searcher;
     }
     
     
     public IntegrationSearchResult integrationSearch(SearchRequests requests){
+    	System.out.println("requests.getFilter().get(0).getFilterTerm() ::"+requests.getFilter().get(0).getFilterTerm());
+    	List<DomainTable>  doaminList = repository.findByDomainList(requests.getFilter().get(0).getFilterTerm());
+    	String indexName = doaminList.get(0).getIndexName();
+    	System.out.println("indexName ::"+indexName);
+    	
         IN2StdSearcher searcher = new IN2StdSearcher();
-        init(searcher, "");
+        init(searcher, indexName);
         String query = requests.getQuery();
      
         if(StringUtils.isNotBlank(query)){									//검색할 문자가 존재할 경우
@@ -71,13 +75,13 @@ public class SearchService {
             		bQuery.add(new IN2ParseQuery(CONTENTS.fieldName, query, CONTENTS.analyzer), IN2Query.OR);
             	}
             }
-            if("".equals(requests.getFilter().get(0).getFilterTerm())) {
-            	bQuery.add(new IN2ParseQuery(CONTENTS.fieldName, requests.getFilter().get(0).getFilterTerm(), CONTENTS.analyzer), IN2Query.OR);
-            }
-            
             searcher.setQuery(bQuery);
         }else{
             searcher.setQuery(IN2Query.MatchingAllDocQuery());
+        }
+        
+        if(!"".equals(requests.getFilter().get(0).getFilterTerm())) {
+        	searcher.setFilter(new IN2TermsFilter(DOMAIN.fieldName, requests.getFilter().get(0).getFilterTerm().split(";"), IN2StdSearcher.SOURCE_TYPE_TEXT));
         }
         
         if(!CollectionUtils.isEmpty(requests.getReturns())){				//넘겨줄 값 매핑
@@ -109,12 +113,15 @@ public class SearchService {
             for (SearchRequests.Return field : requests.getReturns()) {
             	if("number".equals(field.getReturnField())) {
             		strSplit = searcher.getValueInDocument(i, "FILENM").replaceAll("htm", "");
+            		if("4.".equals(strSplit) || "5.".equals(strSplit) || "6.".equals(strSplit)) {
+            			strSplit = "";
+            		}
             		if("".equals(searcher.getValueInDocument(i, field.getReturnField().toUpperCase()))) {
-            			map.put("rnumber", searcher.getValueInDocument(i, field.getReturnField().toUpperCase()));
+            			map.put("rnumber", searcher.getValueInDocument(i, field.getReturnField().toUpperCase()).replaceAll("B 2", "20").replaceAll("B 3", "30"));
             			map.put(field.getReturnField(), strSplit+"0");
             		}else {
-            			map.put("rnumber", searcher.getValueInDocument(i, field.getReturnField().toUpperCase()));
-            			map.put(field.getReturnField(), strSplit+searcher.getValueInDocument(i, field.getReturnField().toUpperCase()));
+            			map.put("rnumber", searcher.getValueInDocument(i, field.getReturnField().toUpperCase()).replaceAll("B 2", "20").replaceAll("B 3", "30"));
+            			map.put(field.getReturnField(), strSplit+searcher.getValueInDocument(i, field.getReturnField().toUpperCase()).replaceAll("B 2", "20").replaceAll("B 3", "30"));
             		}
             	}else {
             		map.put(field.getReturnField(), searcher.getValueInDocument(i, field.getReturnField().toUpperCase()));
@@ -135,19 +142,32 @@ public class SearchService {
      * @return
      */
     public IntegrationSearchResult hierarchySearch(String plant, String query, boolean inferred ){
+    	List<DomainTable>  doaminList = repository.findByDomainList(plant);
+    	String indexName = doaminList.get(0).getIndexName();
+    	System.out.println("indexName ::"+indexName);
+    	
+    	
     	IN2StdSearcher searcher = new IN2StdSearcher();
-    	init(searcher, "table");
+    	init(searcher, indexName);
     	
     	if(StringUtils.isNotBlank(query)){
     		IN2BooleanQuery bQuery = new IN2BooleanQuery();
     		bQuery.add(new IN2PrefixQuery(NUMBER.fieldName, query), IN2Query.OR);
+    		bQuery.add(new IN2ParseQuery(INDEXGB.fieldName, "index", CONTENTS.analyzer), IN2Query.AND);
     		searcher.setQuery(bQuery);
     	}else {
-    		searcher.setQuery(IN2Query.MatchingAllDocQuery()); //쿼리가 존재하지 않음
+    		IN2BooleanQuery bQuery = new IN2BooleanQuery();
+    		bQuery.add(new IN2ParseQuery(INDEXGB.fieldName, "index", CONTENTS.analyzer), IN2Query.AND);
+    		
+    		searcher.setQuery(bQuery);
     	}
     	
+    	if(!"".equals(plant)) {
+			searcher.setFilter(new IN2TermsFilter(DOMAIN.fieldName, plant.split(";"), IN2StdSearcher.SOURCE_TYPE_TEXT));
+		}
+    	
     	IN2MultiSort multiSort = new IN2MultiSort();
-    	multiSort.add(new IN2FieldSort("FILENM", true));
+//    	multiSort.add(new IN2FieldSort("FILENM", true));
     	multiSort.add(new IN2FieldSort("NUMBER1", true));
     	multiSort.add(new IN2FieldSort("NUMBER2", true));
     	multiSort.add(new IN2FieldSort("NUMBER3", true));
@@ -166,40 +186,83 @@ public class SearchService {
     	String tmpStr2 = "";
     	String tmpStr3 = "";
     	String tmpStr4 = "";
+    	
+    	String tmpId = "";
+    	String tmpFirst = "";
     	int cnt = 0;
         for (int i = 0; i < searcher.getDocumentCount(); i++) {
+        	String tmpGb = "";
         	HashMap<String, String> map = new HashMap<>();
-        	
         	tmpStr1 = searcher.getValueInDocument(i, "NUMBER1");
         	tmpStr2 = searcher.getValueInDocument(i, "NUMBER2");
         	tmpStr3 = searcher.getValueInDocument(i, "NUMBER3");
         	tmpStr4 = searcher.getValueInDocument(i, "FILENM");
         	tmpStr4 = tmpStr4.substring(0, 2);
+        	if("B 2.0".contains(tmpStr1)) {
+        		tmpGb = "B";
+        		tmpId = "B 2.0";
+        	}else if("B 3.0".contains(tmpStr1)) {
+        		tmpGb = "B";
+        		tmpId = "B 3.0";
+        	}
+        	
         	
         	map.put("position", searcher.getValueInDocument(i, "POSITION"));
     		map.put("fileNm", searcher.getValueInDocument(i, "FILENM"));
     		map.put("level", searcher.getValueInDocument(i, "LEVEL"));
-        	if("".equals(tmpStr1)) {														// 0단계
-        		map.put("id", tmpStr4+"0");
-        		map.put("name", searcher.getValueInDocument(i, "TITLE0"));
-        		map.put("pid", "");
-        		map.put("rid", "");
-        	}else if(!"".equals(tmpStr1) && "".equals(tmpStr2)) {							// 1단계
-        		map.put("id", tmpStr4+tmpStr1);
-        		map.put("name", searcher.getValueInDocument(i, "TITLE1"));
-        		map.put("pid", tmpStr4+"0");
-        		map.put("rid", tmpStr1);
-        	}else if(!"".equals(tmpStr1) && !"".equals(tmpStr2) && "".equals(tmpStr3)) {	// 2단계
-        		map.put("id", tmpStr4+tmpStr2);
-        		map.put("name", searcher.getValueInDocument(i, "TITLE2"));
-        		map.put("pid", tmpStr4+tmpStr1);
-        		map.put("rid", tmpStr2);
-        	}else {																			// 3단계
-        		map.put("id", tmpStr4+tmpStr3);
-        		map.put("name", searcher.getValueInDocument(i, "TITLE3"));
-        		map.put("pid", tmpStr4+tmpStr2);
-        		map.put("rid", tmpStr2);
-        	}
+    		if("".equals(tmpGb)) {
+    			if("".equals(tmpStr1) && "".equals(tmpStr2) && "".equals(tmpStr3)) {			// 0단계
+            		map.put("id", tmpStr4+"0");
+            		map.put("name", searcher.getValueInDocument(i, "TITLE0"));
+            		map.put("pid", "");
+            		map.put("rid", "");
+            		map.put("vid", tmpStr4+"0");
+            	}else if(!"".equals(tmpStr1) && "".equals(tmpStr2) && "".equals(tmpStr3)) {		// 1단계
+            		map.put("id", tmpStr4+tmpStr1);
+            		map.put("name", searcher.getValueInDocument(i, "TITLE1"));
+            		map.put("pid", tmpStr4+"0");
+            		map.put("rid", tmpStr1);
+            		map.put("vid", tmpStr4+tmpStr1);
+            	}else if(!"".equals(tmpStr1) && !"".equals(tmpStr2) && "".equals(tmpStr3)) {	// 2단계
+            		map.put("id", tmpStr4+tmpStr2);
+            		map.put("name", searcher.getValueInDocument(i, "TITLE2"));
+            		map.put("pid", tmpStr4+tmpStr1);
+            		map.put("rid", tmpStr2);
+            		map.put("vid", tmpStr4+tmpStr2);
+            	}else {																			// 3단계
+            		map.put("id", tmpStr4+tmpStr3);
+            		map.put("name", searcher.getValueInDocument(i, "TITLE3"));
+            		map.put("pid", tmpStr4+tmpStr2);
+            		map.put("rid", tmpStr3);
+            		map.put("vid", tmpStr4+tmpStr3);
+            	}
+    		}else {
+    			if("".equals(tmpStr1) && "".equals(tmpStr2) && "".equals(tmpStr3)) {			// 0단계
+            		map.put("id", tmpId.replaceAll("B 2", "20").replaceAll("B 3", "80"));
+            		map.put("name", searcher.getValueInDocument(i, "TITLE0"));
+            		map.put("pid", "");
+            		map.put("rid", "");
+            		map.put("vid", tmpId);
+            	}else if(!"".equals(tmpStr1) && "".equals(tmpStr2) && "".equals(tmpStr3)) {		// 1단계
+            		map.put("id", tmpStr1.replaceAll("B 2", "20").replaceAll("B 3", "80"));
+            		map.put("name", searcher.getValueInDocument(i, "TITLE1"));
+            		map.put("pid", tmpId.replaceAll("B 2", "20").replaceAll("B 3", "80"));
+            		map.put("rid", tmpStr1);
+            		map.put("vid", tmpStr1);
+            	}else if(!"".equals(tmpStr1) && !"".equals(tmpStr2) && "".equals(tmpStr3)) {	// 2단계
+            		map.put("id", tmpStr2.replaceAll("B 2", "20").replaceAll("B 3", "80"));
+            		map.put("name", searcher.getValueInDocument(i, "TITLE2"));
+            		map.put("pid", tmpStr1.replaceAll("B 2", "20").replaceAll("B 3", "80"));
+            		map.put("rid", tmpStr2);
+            		map.put("vid", tmpStr2);
+            	}else {																			// 3단계
+            		map.put("id", tmpStr3.replaceAll("B 2", "20").replaceAll("B 3", "80"));
+            		map.put("name", searcher.getValueInDocument(i, "TITLE3"));
+            		map.put("pid", tmpStr2.replaceAll("B 2", "20").replaceAll("B 3", "80"));
+            		map.put("rid", tmpStr3);
+            		map.put("vid", tmpStr3);
+            	}
+    		}
         	
         	if(i > 0) {
         		if(!map.get("name").toString().equals(searcher.getValueInDocument(i-1, "TITLE"+map.get("level").toString()))) {
@@ -216,38 +279,38 @@ public class SearchService {
     	return new IntegrationSearchResult(documents, cnt);
     }
     
-    public IntegrationSearchResult targetSearch(){
-    	IN2StdSearcher searcher = new IN2StdSearcher();
-    	init(searcher, "target");
-    	
-    	searcher.setQuery(IN2Query.MatchingAllDocQuery()); //쿼리가 존재하지 않음
-    	
-    	IN2MultiSort multiSort = new IN2MultiSort();
-    	multiSort.add(new IN2FieldSort("FILENM", true));
-    	multiSort.add(new IN2FieldSort("SORT", true));
-    	
-    	searcher.setSort(multiSort);    	
-        searcher.setReturnPositionCount(0, 10000);
-        
-        searcher.addReturnField(new String[]{"TITLE1","POSITION","FILENM"});
-        
-        if(!searcher.searchDocument())	//검색 요청
-            throw new RuntimeException(searcher.getLastErrorMessage());
-    	
-        List<HashMap<String, String>> documents = new ArrayList<>();
-    	int cnt = 0;
-        for (int i = 0; i < searcher.getDocumentCount(); i++) {
-        	HashMap<String, String> map = new HashMap<>();
-        	
-        	map.put("position", searcher.getValueInDocument(i, "POSITION"));
-    		map.put("fileNm", searcher.getValueInDocument(i, "FILENM"));
-    		map.put("title", searcher.getValueInDocument(i, "TITLE1"));
-        	
-        	
-    		documents.add(map);
-    		cnt++;
-        }
-        log.info("query : {} , return count: {}",  searcher.getDocumentCount());
-    	return new IntegrationSearchResult(documents, cnt);
-    }
+//    public IntegrationSearchResult targetSearch(){
+//    	IN2StdSearcher searcher = new IN2StdSearcher();
+//    	init(searcher, "target");
+//    	
+//    	searcher.setQuery(IN2Query.MatchingAllDocQuery()); //쿼리가 존재하지 않음
+//    	
+//    	IN2MultiSort multiSort = new IN2MultiSort();
+//    	multiSort.add(new IN2FieldSort("FILENM", true));
+//    	multiSort.add(new IN2FieldSort("SORT", true));
+//    	
+//    	searcher.setSort(multiSort);    	
+//        searcher.setReturnPositionCount(0, 10000);
+//        
+//        searcher.addReturnField(new String[]{"TITLE1","POSITION","FILENM"});
+//        
+//        if(!searcher.searchDocument())	//검색 요청
+//            throw new RuntimeException(searcher.getLastErrorMessage());
+//    	
+//        List<HashMap<String, String>> documents = new ArrayList<>();
+//    	int cnt = 0;
+//        for (int i = 0; i < searcher.getDocumentCount(); i++) {
+//        	HashMap<String, String> map = new HashMap<>();
+//        	
+//        	map.put("position", searcher.getValueInDocument(i, "POSITION"));
+//    		map.put("fileNm", searcher.getValueInDocument(i, "FILENM"));
+//    		map.put("title", searcher.getValueInDocument(i, "TITLE1"));
+//        	
+//        	
+//    		documents.add(map);
+//    		cnt++;
+//        }
+//        log.info("query : {} , return count: {}",  searcher.getDocumentCount());
+//    	return new IntegrationSearchResult(documents, cnt);
+//    }
 }

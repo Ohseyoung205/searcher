@@ -5,7 +5,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -89,9 +88,8 @@ public class BrokerService {
 		json = (JSONObject) JSONValue.parse(param);
 		
 		
-		
-		if(json == null || json.get("chid") == null || "".equals(json.get("chid")) 
-				|| json.get("uuid") == null || "".equals(json.get("uuid"))) {					// 채널명과 대화세션 UUID가 존재하지 않으면
+		System.out.println();
+		if(json == null || json.get("chid") == null || "".equals(json.get("chid"))) {
 			map = returnRslt("", "", "", "", "", "", "-1", "입력값 오류"); 
 		}else {
 			String tmpType = json.get("type").toString();
@@ -103,7 +101,10 @@ public class BrokerService {
 			if("stt_khnp".equals(json.get("chid").toString())) { 								// 넘어온 채널명이 음성인식이면
 				String sttMsg = "";		
 				boolean sttToken = false;
-				stt_uuid = json.get("uuid").toString();
+				if(!"1".equals(tmpType)) {
+					stt_uuid = json.get("uuid").toString();
+				}
+				
 				Date today = new Date();
 				SimpleDateFormat sdf = new SimpleDateFormat("YYYYMMdd");
 				String tmpDay = sdf.format(today);
@@ -131,20 +132,22 @@ public class BrokerService {
 						}
 					}
 				}else {
-					String conversationId= isUserConverstationId(stt_uuid);
-					int chkInt = conversationChk(request, conversationId);
-					if(chkInt==1) {
-						map = on_cnvs(request, json, conversationId, stt_uuid);
-					}else if(chkInt == 0) {
-						conversationId = start_cnvs(request, stt_uuid);
-						if(conversationId == null) {
-							map = returnRslt(json.get("chid").toString(), json.get("sysid").toString(), json.get("uuid").toString(), json.get("userid").toString(), "", "", "-5", "톡봇API접속 오류");
-						}else {
-							map = on_cnvs(request, json, conversationId, stt_uuid);
-						}
-					} else {
-						map = returnRslt(json.get("chid").toString(), json.get("sysid").toString(), json.get("uuid").toString(), json.get("userid").toString(), "", "", "-5", "톡봇API접속 오류");
-					}
+					map = on_cnvs(request, json, stt_uuid);
+					
+//					String conversationId= isUserConverstationId(stt_uuid);
+//					int chkInt = conversationChk(request, conversationId);
+//					if(chkInt==1) {
+//						map = on_cnvs(request, json, conversationId, stt_uuid);
+//					}else if(chkInt == 0) {
+//						conversationId = start_cnvs(request, stt_uuid);
+//						if(conversationId == null) {
+//							map = returnRslt(json.get("chid").toString(), json.get("sysid").toString(), json.get("uuid").toString(), json.get("userid").toString(), "", "", "-5", "톡봇API접속 오류");
+//						}else {
+//							map = on_cnvs(request, json, conversationId, stt_uuid);
+//						}
+//					} else {
+//						map = returnRslt(json.get("chid").toString(), json.get("sysid").toString(), json.get("uuid").toString(), json.get("userid").toString(), "", "", "-5", "톡봇API접속 오류");
+//					}
 				}
 				
 				if(!"".equals(sttMsg)) { 															
@@ -153,7 +156,6 @@ public class BrokerService {
 					if("1".equals(tmpType) || "2".equals(tmpType)) {
 						map = returnRslt(json.get("chid").toString(), json.get("sysid").toString(), json.get("uuid").toString(), json.get("userid").toString(), "", "", "-4","음성 인식 전송 오류");
 					}else {
-					//	String sttReturn = ttsReturn01(map.get("text_answer").toString(), stt_voice_type);
 						String sttReturn = ttsReturn01(map.get("text_answer").toString(), stt_voice_type);
 						map = returnRslt(json.get("chid").toString(), json.get("sysid").toString(), json.get("uuid").toString(), json.get("userid").toString(), map.get("text_answer").toString(), sttReturn, "0", "");
 					}
@@ -164,21 +166,23 @@ public class BrokerService {
 					map = returnRslt(json.get("chid").toString(), json.get("sysid").toString(), json.get("uuid").toString(), json.get("userid").toString(), json.get("user_msg").toString(), sttReturn, "0", "");
 				}else {
 					callId = json.get("uuid").toString();
-					String conversationId = isUserConverstationId(callId);
-					int chkInt = conversationChk(request, conversationId);
+					map = on_cnvs(request, json, callId);
 					
-					if(chkInt == 1) {
-						map = on_cnvs(request, json, conversationId, callId);
-					} else if(chkInt == 0) {
-						conversationId = start_cnvs(request, callId);
-						if(conversationId == null) {
-							map = returnRslt(json.get("chid").toString(), json.get("sysid").toString(), json.get("uuid").toString(), json.get("userid").toString(), "", "", "-5", "톡봇API접속 오류");
-						}else {
-							map = on_cnvs(request, json, conversationId, callId);
-						}
-					} else {
-						map = returnRslt(json.get("chid").toString(), json.get("sysid").toString(), json.get("uuid").toString(), json.get("userid").toString(), "", "", "-5", "톡봇API접속 오류");
-					}
+//					String conversationId = isUserConverstationId(callId);
+//					int chkInt = conversationChk(request, conversationId);
+//					
+//					if(chkInt == 1) {
+//						map = on_cnvs(request, json, conversationId, callId);
+//					} else if(chkInt == 0) {
+//						conversationId = start_cnvs(request, callId);
+//						if(conversationId == null) {
+//							map = returnRslt(json.get("chid").toString(), json.get("sysid").toString(), json.get("uuid").toString(), json.get("userid").toString(), "", "", "-5", "톡봇API접속 오류");
+//						}else {
+//							map = on_cnvs(request, json, conversationId, callId);
+//						}
+//					} else {
+//						map = returnRslt(json.get("chid").toString(), json.get("sysid").toString(), json.get("uuid").toString(), json.get("userid").toString(), "", "", "-5", "톡봇API접속 오류");
+//					}
 				}
 			}
 		}
@@ -196,7 +200,7 @@ public class BrokerService {
 	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")
-	public Map<String, Object> on_cnvs(HttpServletRequest request, JSONObject json, String conversationId, String callId) throws Exception{
+	public Map<String, Object> on_cnvs(HttpServletRequest request, JSONObject json, String conversationId) throws Exception{
 		Map<String, Object> map = new HashMap<String, Object>();
 		CloseableHttpClient httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
 		try {
@@ -235,24 +239,24 @@ public class BrokerService {
 				if(!"TEXT".equals(jsonMsg.getJsonObject(0).getString("type"))) {
 					JSONObject msgJson = (JSONObject) JSONValue.parse(jsonMsg.getJsonObject(0).getString("message"));
 					if(msgJson.get("title") == null) {	//title 존재하지 않으면
-						map = returnRslt(json.get("chid").toString(), json.get("sysid").toString(), callId, json.get("userid").toString(), "", "", "-6", "톡봇API 응답 메시지 오류");
+						map = returnRslt(json.get("chid").toString(), json.get("sysid").toString(), conversationId, json.get("userid").toString(), "", "", "-6", "톡봇API 응답 메시지 오류");
 					}else {
-						map = returnRslt(json.get("chid").toString(), json.get("sysid").toString(), callId, json.get("userid").toString(), reMsg.toString(), "", "0", "");
+						map = returnRslt(json.get("chid").toString(), json.get("sysid").toString(), conversationId, json.get("userid").toString(), reMsg.toString(), "", "0", "");
 					}
 				}else {
-					map = returnRslt(json.get("chid").toString(), json.get("sysid").toString(), callId, json.get("userid").toString(), reMsg.toString(), "", "0", "");
+					map = returnRslt(json.get("chid").toString(), json.get("sysid").toString(), conversationId, json.get("userid").toString(), reMsg.toString(), "", "0", "");
 				}
 				
 			}else {
-				map = returnRslt(json.get("chid").toString(), json.get("sysid").toString(), callId, json.get("userid").toString(), "", "", "-6", "톡봇API 응답 메시지 오류");
+				map = returnRslt(json.get("chid").toString(), json.get("sysid").toString(), conversationId, json.get("userid").toString(), "", "", "-6", "톡봇API 응답 메시지 오류");
 			}
 			
 		}catch(Exception e) {
-			map = returnRslt(json.get("chid").toString(), json.get("sysid").toString(), callId, json.get("userid").toString(), "", "", "-5", "톡봇API접속 오류");
+			map = returnRslt(json.get("chid").toString(), json.get("sysid").toString(), conversationId, json.get("userid").toString(), "", "", "-5", "톡봇API접속 오류");
 		}finally {
 			httpClient.close();
 		}
-		sessionList(callId, conversationId);
+		sessionList(conversationId, conversationId);
 		
 		return map;
 	}
@@ -479,9 +483,7 @@ public class BrokerService {
 	public Map<String, Object> returnRslt(String chid, String sysid, String uuid, String userid, String text_answer
 			, String stt_answer, String status, String error_msg) throws Exception{
 		
-//		JSONObject rsltJson = new JSONObject();
 		Map<String, Object> rsltJson = new HashMap<String, Object>();
-//		JsonObject answerJson = new JsonObject(text_answer);
 		JSONObject answerJson = new JSONObject();
 		answerJson = (JSONObject) JSONValue.parse(text_answer);
 		
