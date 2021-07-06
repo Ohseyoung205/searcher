@@ -47,7 +47,7 @@ public class IndexTarget {
 	@Value("${pattern3.ptns2}")
     private String ptnPtns2;
 	
-public IndexVo indexTarget(String domain, String fileNm, String indexName, IndexVo indexVo) throws Exception{
+public IndexVo indexTarget(String domain, String fileNm, String indexName, IndexVo indexVo, int fileNum) throws Exception{
 		
 		String title1_pattern1 = ptnTitle1+Consts.TWOSPACE+".*"; // 1.0, 2.0 ,3.0 구분
 		String title2_pattern1 = ptnTitle2+Consts.TWOSPACE+".*"; // 1.1, 1.2, 1.3 ...2.1
@@ -68,9 +68,15 @@ public IndexVo indexTarget(String domain, String fileNm, String indexName, Index
 	    Matcher m;
 		boolean saveBln = false;
 		int numberChk = 0;
+		String orderNum = "";
 		
 		indexVo.setStartLine(0);
 		indexVo.setImgLineNum(0);
+		indexVo.setNumber1("");
+	    indexVo.setNumber2("");
+	    indexVo.setNumber3("");
+	    indexVo.setNumber4("");
+	    indexVo.setLevel("");
 		
 		try{
 			File file = new File(htmFilePath+File.separator+domain+File.separator+fileNm);
@@ -83,6 +89,7 @@ public IndexVo indexTarget(String domain, String fileNm, String indexName, Index
 	            	indexVo.setStartNum(lineNum);
 	            }
 	            	
+	            orderNum= fileNum+String.format("%06d", lineNum);
 	            if(indexVo.getStartNum() > 0) {
 	            	
 	            	saveBln = false;
@@ -177,7 +184,10 @@ public IndexVo indexTarget(String domain, String fileNm, String indexName, Index
        				}else if("제 3 편".equals(indexVo.getTagStr())) {
        					indexVo.setIndexgb("index");
        					indexVo.setBigTitleGb("3");
-       				}else if("B 2.0".equals(indexVo.getRealStr())) {
+       				}else if("B 2.0".equals(indexVo.getNumber1())) {
+       					indexVo.setIndexgb("index");
+        				indexVo.setBigTitleGb("1");
+       				}else if("B 3.0".equals(indexVo.getNumber2())) {
        					indexVo.setIndexgb("index");
         				indexVo.setBigTitleGb("1");
        				}
@@ -240,6 +250,7 @@ public IndexVo indexTarget(String domain, String fileNm, String indexName, Index
 						map.put("LEVEL", indexVo.getLevel());
 						map.put("ETC", "");
 						map.put("FILENAME", fileNm);
+						map.put("ORDERNUM", orderNum);
 							
 						resultMap.put(key, map);
 	            	}
@@ -257,37 +268,31 @@ public IndexVo indexTarget(String domain, String fileNm, String indexName, Index
 		while (iteratorKey.hasNext()) {
 			String key = iteratorKey.next();
 			Document vo = new Document();
-			if("".equals(tm.get(key).get("TITLE0")) || "".equals(tm.get(key).get("NUMBER0"))) {
-				vo.setContent("");
-				vo.setEtc("");
-				vo.setPosition("");
-			}else {
+			if(!"".equals(tm.get(key).get("NUMBER1").trim())) {
 				vo.setContent(tm.get(key).get("CONTENT"));
 				vo.setEtc(tm.get(key).get("ETC"));
 				vo.setPosition(tm.get(key).get("STARTLINE")+"-"+tm.get(key).get("ENDLINE"));
+				vo.setNumber0(tm.get(key).get("NUMBER0"));
+				vo.setTitle0(tm.get(key).get("TITLE0"));
+				vo.setTitle1(tm.get(key).get("TITLE1"));
+				vo.setTitle2(tm.get(key).get("TITLE2"));
+				vo.setTitle3(tm.get(key).get("TITLE3"));
+				vo.setTitle4(tm.get(key).get("TITLE4"));
+				vo.setTitle4_1(tm.get(key).get("TITLE4_1"));
+				vo.setNumber1(tm.get(key).get("NUMBER1"));
+				vo.setNumber2(tm.get(key).get("NUMBER2"));
+				vo.setNumber3(tm.get(key).get("NUMBER3"));
+				vo.setNumber4(tm.get(key).get("NUMBER4"));
+			    vo.setEtc(tm.get(key).get("ETC"));
+			    vo.setLevel(tm.get(key).get("LEVEL"));
+			    vo.setFileNm(tm.get(key).get("FILENAME"));
+			    vo.setIndexgb("target");
+			    vo.setDomain(domain);
+			    vo.setOrderNum(Long.parseLong(tm.get(key).get("ORDERNUM")));
+					
+				voList.add(vo);
 			}
-			vo.setNumber0(tm.get(key).get("NUMBER0"));
-			vo.setTitle0(tm.get(key).get("TITLE0"));
-			vo.setTitle1(tm.get(key).get("TITLE1"));
-			vo.setTitle2(tm.get(key).get("TITLE2"));
-			vo.setTitle3(tm.get(key).get("TITLE3"));
-			vo.setTitle4(tm.get(key).get("TITLE4"));
-			vo.setTitle4_1(tm.get(key).get("TITLE4_1"));
-			vo.setNumber1(tm.get(key).get("NUMBER1"));
-			vo.setNumber2(tm.get(key).get("NUMBER2"));
-			vo.setNumber3(tm.get(key).get("NUMBER3"));
-			vo.setNumber4(tm.get(key).get("NUMBER4"));
-		    vo.setEtc(tm.get(key).get("ETC"));
-		    vo.setLevel(tm.get(key).get("LEVEL"));
-		    vo.setFileNm(tm.get(key).get("FILENAME"));
-		    vo.setIndexgb("target");
-		    vo.setDomain(domain);
-//			if (tm.get(key).get("CONTENT").getBytes().length > 32000) {
-//				System.out.println("==========초과  ====");
-//				System.out.println(tm.get(key).get("CONTENT"));
-//			}
-				
-			voList.add(vo);
+			
 		}
 		
 		if(voList.size() > 0) {

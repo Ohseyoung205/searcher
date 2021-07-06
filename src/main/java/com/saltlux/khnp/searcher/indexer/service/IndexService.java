@@ -1,6 +1,7 @@
 package com.saltlux.khnp.searcher.indexer.service;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,6 +69,7 @@ public class IndexService {
 			indexDomain = indexDomain+"8"+indexgb;
 		}
 		
+
 		if(doaminList.size() == 0) {
 			domainTable.setDomainId(0);
 			domainTable.setName(domain);
@@ -76,11 +78,10 @@ public class IndexService {
 		}else {
 			domainTable.setDomainId(0);
 			domainTable.setName(domain);
-			domainTable.setIndexName(indexDomain+doaminList.size());
+			domainTable.setIndexName(indexDomain+String.format("%05d", doaminList.get(0).getDomainId()));
 			domainTable = repository.save(domainTable);
 		}
 		
-		System.out.println("domainTable.getIndexName() ::"+domainTable.getIndexName());
 		if(domainTable.getIndexName() != null && !"".equals(domainTable.getIndexName())) {
 			File rw = new File(htmFilePath+File.separator+domain);
 			File [] fileList = rw.listFiles();
@@ -106,10 +107,11 @@ public class IndexService {
 				IndexVo tarVo = new IndexVo();
 				if(htmChange.indexHtmChange(domain, htmFileName)) {
 					String[] fileNm = htmFileName.split(";");
+					Arrays.sort(fileNm);
 					for(int i=0;i<fileNm.length; i++) {
 						System.out.println(fileNm[i]+"파일 색인중....");
-						htmVo = indexHtm.indexHtm(domain, fileNm[i], domainTable.getIndexName(), htmVo);
-						tarVo = indexTarget.indexTarget(domain, fileNm[i], domainTable.getIndexName(), tarVo);
+						htmVo = indexHtm.indexHtm(domain, fileNm[i], domainTable.getIndexName(), htmVo, (i+1));
+						tarVo = indexTarget.indexTarget(domain, fileNm[i], domainTable.getIndexName(), tarVo, (i+1));
 						System.out.println("htmVo.isBln() ::"+htmVo.isBln());
 						if(!htmVo.isBln() || !tarVo.isBln()) {
 							map.put("errorYn", "Y");
@@ -123,6 +125,11 @@ public class IndexService {
 						List<DomainTable>  doaminList1 = repository.findByDomainList(domain);
 						if(doaminList1.size() > 1) {
 							htmIndexing.dropIndex(doaminList1.get(1).getIndexName());
+							DomainTable delDomain = new DomainTable();
+							delDomain = doaminList1.get(1);
+							
+//							System.out.println("delDomain.getDomainId() ::"+delDomain.getDomainId()+" || delDomain.getIndexName() ::"+delDomain.getIndexName());
+							repository.delete(delDomain);
 						}
 					}
 					
