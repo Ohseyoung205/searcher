@@ -26,4 +26,5 @@ public class Document {
     private String fileNm;
     private String domain;
     private String useyn;
+    private long orderNum;
 }
