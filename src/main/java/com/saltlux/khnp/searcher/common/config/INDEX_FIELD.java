@@ -14,7 +14,11 @@ public enum INDEX_FIELD {
     // 내용
     CONTENTS("CONTENTS", "KOR_BIGRAM", true, true),
 	
-	YYYYMMDD("YYYYMMDD", "TERM", true, true);
+	YYYYMMDD("YYYYMMDD", "TERM", true, true),
+	
+	INDEXGB("INDEXGB", "KOR_BIGRAM", true, true),
+	//도메인
+	DOMAIN("DOMAIN", "TERM", true, true);
 
     public String fieldName;
     public String analyzer;
