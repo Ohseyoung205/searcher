@@ -73,7 +73,7 @@ public class IndexService {
 		if(doaminList.size() == 0) {
 			domainTable.setDomainId(0);
 			domainTable.setName(domain);
-			domainTable.setIndexName(indexDomain+"0");
+			domainTable.setIndexName(indexDomain+String.format("%05d", 0));
 			domainTable = repository.save(domainTable);
 		}else {
 			domainTable.setDomainId(0);

@@ -55,12 +55,21 @@ public class SearchService {
     
     
     public IntegrationSearchResult integrationSearch(SearchRequests requests){
-    	List<DomainTable>  doaminList = repository.findByDomainList(requests.getFilter().get(0).getFilterTerm());
-    	String indexName = doaminList.get(0).getIndexName();
-    	System.out.println("indexName ::"+indexName);
+    	List<DomainTable>  doaminList = null;
     	
         IN2StdSearcher searcher = new IN2StdSearcher();
-        init(searcher, indexName);
+        if("".equals(requests.getFilter().get(0).getFilterTerm())) {
+        	searcher.setServer(host, port);
+    		doaminList = repository.findAll();
+    		for(int i=0;i<doaminList.size(); i++) {
+    			searcher.addIndex(doaminList.get(i).getIndexName());
+    		}
+    	}else {
+    		doaminList = repository.findByDomainList(requests.getFilter().get(0).getFilterTerm());
+    		String indexName = doaminList.get(0).getIndexName();
+    		init(searcher, indexName);
+    	}
+
         String query = requests.getQuery();
      
         if(StringUtils.isNotBlank(query)){									//검색할 문자가 존재할 경우
@@ -79,9 +88,9 @@ public class SearchService {
             searcher.setQuery(IN2Query.MatchingAllDocQuery());
         }
         
-        if(!"".equals(requests.getFilter().get(0).getFilterTerm())) {
-        	searcher.setFilter(new IN2TermsFilter(DOMAIN.fieldName, requests.getFilter().get(0).getFilterTerm().split(";"), IN2StdSearcher.SOURCE_TYPE_TEXT));
-        }
+//        if(!"".equals(requests.getFilter().get(0).getFilterTerm())) {
+//        	searcher.setFilter(new IN2TermsFilter(DOMAIN.fieldName, requests.getFilter().get(0).getFilterTerm().split(";"), IN2StdSearcher.SOURCE_TYPE_TEXT));
+//        }
         
         if(!CollectionUtils.isEmpty(requests.getReturns())){				//넘겨줄 값 매핑
             requests.getReturns().stream()
@@ -123,7 +132,6 @@ public class SearchService {
             			map.put(field.getReturnField(), strSplit+searcher.getValueInDocument(i, field.getReturnField().toUpperCase()).replaceAll("B 2", "20").replaceAll("B 3", "30"));
             		}
             	}else {
-            		System.out.println("field.getReturnField().toUpperCase() ::"+field.getReturnField().toUpperCase());
             		map.put(field.getReturnField(), searcher.getValueInDocument(i, field.getReturnField().toUpperCase()));
             	}
             	
@@ -144,9 +152,7 @@ public class SearchService {
     public IntegrationSearchResult hierarchySearch(String plant, String query, boolean inferred ){
     	List<DomainTable>  doaminList = repository.findByDomainList(plant);
     	String indexName = doaminList.get(0).getIndexName();
-    	System.out.println("indexName ::"+indexName);
-    	
-    	
+
     	IN2StdSearcher searcher = new IN2StdSearcher();
     	init(searcher, indexName);
     	
