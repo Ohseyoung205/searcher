@@ -10,9 +10,6 @@ import java.util.List;
 
 public interface TermsDictRepository extends JpaRepository<TermsDict, Long>, JpaSpecificationExecutor<TermsDict> {
 
-    // 용어사전 전체 검색 recYn= "Y"
-    List<TermsDict> findByRecYnEquals(String recYn);
-
     // 용어집 이름이 전체일 때 recYn= "Y"
     List<TermsDict> findByTermsKoNameContainingAndRecYnEquals(String termsKoName, String recYn);
     List<TermsDict> findByTermsEaNameContainingAndRecYnEquals(String termsEaName, String recYn);

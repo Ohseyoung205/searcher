@@ -12,6 +12,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 public class ExcelHelper {
@@ -52,9 +54,9 @@ public class ExcelHelper {
 //    String[] HEADERs = {"main_word", "sub_word", "word_div", "use_yn", "rec_yn", "create_dt"};
     String[] HEADERs = {"대표어", "동의어", "등록일"};
     String SHEET = "동의어";
+    DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream();) {
       Sheet sheet = workbook.createSheet(SHEET);
-
       // Header
       Row headerRow = sheet.createRow(0);
 
@@ -69,7 +71,7 @@ public class ExcelHelper {
 
         row.createCell(0).setCellValue(customeDict.getMainWord());
         row.createCell(1).setCellValue(customeDict.getSubWord());
-        row.createCell(2).setCellValue(customeDict.getCreateDt());
+        row.createCell(2).setCellValue(format.format(customeDict.getCreateDt()));
       }
 
       workbook.write(out);
@@ -83,6 +85,7 @@ public class ExcelHelper {
 //    String[] HEADERs = {"main_word", "sub_word", "word_div", "use_yn", "rec_yn", "create_dt"};
     String[] HEADERs = {"불용어", "등록일"};
     String SHEET = "불용어";
+    DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream();) {
       Sheet sheet = workbook.createSheet(SHEET);
 
@@ -99,7 +102,7 @@ public class ExcelHelper {
         Row row = sheet.createRow(rowIdx++);
 
         row.createCell(0).setCellValue(customeDict.getMainWord());
-        row.createCell(1).setCellValue(customeDict.getCreateDt());
+        row.createCell(1).setCellValue(format.format(customeDict.getCreateDt()));
 
       }
 
