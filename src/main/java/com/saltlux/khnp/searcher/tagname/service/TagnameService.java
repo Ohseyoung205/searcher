@@ -2,7 +2,7 @@ package com.saltlux.khnp.searcher.tagname.service;
 
 import com.saltlux.dor.api.IN2StdSearcher;
 import com.saltlux.dor.api.common.query.*;
-import com.saltlux.khnp.searcher.common.constant.TagnameField;
+import com.saltlux.khnp.searcher.common.constant.TAGNAME_FIELD;
 import com.saltlux.khnp.searcher.search.vo.PageResultVo;
 import com.saltlux.khnp.searcher.tagname.model.ClusteredTagnameVo;
 import com.saltlux.khnp.searcher.tagname.model.TagnameVo;
@@ -40,21 +40,21 @@ public class TagnameService {
 
         IN2BooleanQuery bQuery = new IN2BooleanQuery();
         if(StringUtils.isNotEmpty(plant)){
-            bQuery.add(new IN2PrefixQuery(TagnameField.PLANT.name(), plant), IN2Query.AND);
+            bQuery.add(new IN2PrefixQuery(TAGNAME_FIELD.PLANT.name(), plant), IN2Query.AND);
         }
 
         IN2BooleanQuery subQuery = new IN2BooleanQuery();
-        String korFieldName = TagnameField.DESCRIPTION.name() + "_MORPH";
+        String korFieldName = TAGNAME_FIELD.DESCRIPTION.name() + "_MORPH";
         String korFieldValue = synonymDictionary.getSynonymQuery(query);
         subQuery.add(new IN2ParseQuery(korFieldName, korFieldValue, IN2StdSearcher.TOKENIZER_KOR), IN2Query.OR);
 
-        String bigramFieldName = TagnameField.INTEGRATION.name() + "_BIGRAM";
+        String bigramFieldName = TAGNAME_FIELD.INTEGRATION.name() + "_BIGRAM";
         subQuery.add(new IN2ParseQuery(bigramFieldName, query, IN2StdSearcher.TOKENIZER_BIGRAM), IN2Query.OR);
         bQuery.add(subQuery, IN2Query.AND);
 
 
         searcher.setQuery(bQuery);
-        searcher.addReturnField(TagnameField.getAllFields());
+        searcher.addReturnField(TAGNAME_FIELD.getAllFields());
         searcher.setReturnPositionCount(0, 100);
         if(!searcher.searchDocument())
             throw new RuntimeException(searcher.getLastErrorMessage());
@@ -95,21 +95,21 @@ public class TagnameService {
             bQuery.add(IN2Query.MatchingAllDocQuery(), IN2Query.AND);
         }else{
             IN2BooleanQuery subQuery = new IN2BooleanQuery();
-            String korFieldName = TagnameField.INTEGRATION.name() + "_MORPH";
+            String korFieldName = TAGNAME_FIELD.INTEGRATION.name() + "_MORPH";
             String korFieldValue = synonymDictionary.getSynonymQuery(query);
             subQuery.add(new IN2ParseQuery(korFieldName, korFieldValue, IN2StdSearcher.TOKENIZER_KOR), IN2Query.OR);
 
-            String bigramFieldName = TagnameField.INTEGRATION.name() + "_BIGRAM";
+            String bigramFieldName = TAGNAME_FIELD.INTEGRATION.name() + "_BIGRAM";
             subQuery.add(new IN2ParseQuery(bigramFieldName, query, IN2StdSearcher.TOKENIZER_BIGRAM), IN2Query.OR);
             bQuery.add(subQuery, IN2Query.AND);
         }
 
         if(StringUtils.isNotEmpty(plant)){
-            bQuery.add(new IN2PrefixQuery(TagnameField.PLANT.name(), plant), IN2Query.AND);
+            bQuery.add(new IN2PrefixQuery(TAGNAME_FIELD.PLANT.name(), plant), IN2Query.AND);
         }
 
         searcher.setQuery(bQuery);
-        searcher.addReturnField(TagnameField.getAllFields());
+        searcher.addReturnField(TAGNAME_FIELD.getAllFields());
         searcher.setReturnPositionCount(offset, limit);
         if(!searcher.searchDocument())
             throw new RuntimeException(searcher.getLastErrorMessage());

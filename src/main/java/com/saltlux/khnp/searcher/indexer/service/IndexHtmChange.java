@@ -1,24 +1,15 @@
 package com.saltlux.khnp.searcher.indexer.service;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.attribute.GroupPrincipal;
-import java.nio.file.attribute.PosixFileAttributeView;
-import java.nio.file.attribute.UserPrincipal;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import java.io.*;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
+@Slf4j
 @Component
 public class IndexHtmChange {
 	
@@ -64,7 +55,7 @@ public class IndexHtmChange {
 			}
 		}catch(Exception e) {
 			e.printStackTrace();
-			System.out.println("error");
+			log.info("error");
 		}
 		
 		

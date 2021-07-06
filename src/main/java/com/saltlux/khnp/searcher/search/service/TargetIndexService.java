@@ -32,7 +32,7 @@ import com.saltlux.dor.api.common.query.IN2Query;
 import com.saltlux.dor.api.common.sort.IN2FieldSort;
 import com.saltlux.dor.api.common.sort.IN2MultiSort;
 
-@Service
+//@Service
 public class TargetIndexService {
 	
 	@Value("${in2.dor.host}")

@@ -1,10 +1,10 @@
 package com.saltlux.khnp.searcher.search.service;
 
-import static com.saltlux.khnp.searcher.common.config.INDEX_FIELD.CONTENTS;
-import static com.saltlux.khnp.searcher.common.config.INDEX_FIELD.NUMBER;
-import static com.saltlux.khnp.searcher.common.config.INDEX_FIELD.TITLE;
-import static com.saltlux.khnp.searcher.common.config.INDEX_FIELD.INDEXGB;
-import static com.saltlux.khnp.searcher.common.config.INDEX_FIELD.DOMAIN;
+import static com.saltlux.khnp.searcher.common.constant.INDEX_FIELD.CONTENTS;
+import static com.saltlux.khnp.searcher.common.constant.INDEX_FIELD.NUMBER;
+import static com.saltlux.khnp.searcher.common.constant.INDEX_FIELD.TITLE;
+import static com.saltlux.khnp.searcher.common.constant.INDEX_FIELD.INDEXGB;
+import static com.saltlux.khnp.searcher.common.constant.INDEX_FIELD.DOMAIN;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,7 +23,6 @@ import com.saltlux.dor.api.common.query.IN2BooleanQuery;
 import com.saltlux.dor.api.common.query.IN2ParseQuery;
 import com.saltlux.dor.api.common.query.IN2PrefixQuery;
 import com.saltlux.dor.api.common.query.IN2Query;
-import com.saltlux.dor.api.common.query.IN2TermQuery;
 import com.saltlux.dor.api.common.sort.IN2FieldSort;
 import com.saltlux.dor.api.common.sort.IN2MultiSort;
 import com.saltlux.khnp.searcher.search.model.DomainTable;

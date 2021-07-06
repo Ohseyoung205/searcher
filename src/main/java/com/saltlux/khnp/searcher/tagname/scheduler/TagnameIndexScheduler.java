@@ -4,7 +4,7 @@ import com.saltlux.dor.api.IN2StdFieldUpdater;
 import com.saltlux.dor.api.IN2StdIndexer;
 import com.saltlux.dor.api.IN2StdSearcher;
 import com.saltlux.dor.api.common.query.IN2TermQuery;
-import com.saltlux.khnp.searcher.common.constant.TagnameField;
+import com.saltlux.khnp.searcher.common.constant.TAGNAME_FIELD;
 import com.saltlux.khnp.searcher.tagname.analysis.Cluster;
 import com.saltlux.khnp.searcher.tagname.analysis.DBScanCluster;
 import com.saltlux.khnp.searcher.tagname.analysis.LevenshteinDistance;
@@ -15,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.scheduling.annotation.Schedules;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -81,8 +80,8 @@ public class TagnameIndexScheduler {
         IN2StdFieldUpdater updater = new IN2StdFieldUpdater();
         updater.setServer(host, indexerPort);
         updater.setIndex(indexName);
-        updater.setKey(TagnameField.TAGID.getFieldName(), vo.getTagid());
-        updater.setUpdateData(TagnameField.CLUSTER.getFieldName(), vo.getCluster());
+        updater.setKey(TAGNAME_FIELD.TAGID.getFieldName(), vo.getTagid());
+        updater.setUpdateData(TAGNAME_FIELD.CLUSTER.getFieldName(), vo.getCluster());
         updater.update();
     }
 
@@ -101,8 +100,8 @@ public class TagnameIndexScheduler {
         IN2StdSearcher searcher = new IN2StdSearcher();
         searcher.setServer(host, searcherPort);
         searcher.addIndex(indexName);
-        searcher.setQuery(new IN2TermQuery(TagnameField.TAGID.getFieldName(), vo.getTagid()));
-        searcher.addReturnField(TagnameField.getAllFields());
+        searcher.setQuery(new IN2TermQuery(TAGNAME_FIELD.TAGID.getFieldName(), vo.getTagid()));
+        searcher.addReturnField(TAGNAME_FIELD.getAllFields());
         if(!searcher.searchDocument()){
             log.warn("DOR Searcher error : {}", searcher.getLastErrorMessage());
             return false;
@@ -121,18 +120,18 @@ public class TagnameIndexScheduler {
         indexer.setServer(host, indexerPort);
         indexer.setIndex(indexName);
 
-        addField(TagnameField.TAGID, vo.getTagid(), indexer);
-        addField(TagnameField.TAGNAME, vo.getTagname(), indexer);
-        addField(TagnameField.DESCRIPTION, vo.getDescription(), indexer);
-        addField(TagnameField.PLANT, vo.getPlant(), indexer);
-        indexer.addFieldFTR(TagnameField.INTEGRATION.name(), TagnameField.INTEGRATION.getFieldName(), TagnameField.INTEGRATION.getAnalyzer(), TagnameField.INTEGRATION.isIndexed(), TagnameField.INTEGRATION.isStored());
+        addField(TAGNAME_FIELD.TAGID, vo.getTagid(), indexer);
+        addField(TAGNAME_FIELD.TAGNAME, vo.getTagname(), indexer);
+        addField(TAGNAME_FIELD.DESCRIPTION, vo.getDescription(), indexer);
+        addField(TAGNAME_FIELD.PLANT, vo.getPlant(), indexer);
+        indexer.addFieldFTR(TAGNAME_FIELD.INTEGRATION.name(), TAGNAME_FIELD.INTEGRATION.getFieldName(), TAGNAME_FIELD.INTEGRATION.getAnalyzer(), TAGNAME_FIELD.INTEGRATION.isIndexed(), TAGNAME_FIELD.INTEGRATION.isStored());
 
-        indexer.addUpdateableField(TagnameField.CLUSTER.getFieldName(), vo.getCluster());
+        indexer.addUpdateableField(TAGNAME_FIELD.CLUSTER.getFieldName(), vo.getCluster());
         if(!indexer.addDocument())
             throw new RuntimeException(indexer.getLastErrorMessage());
     }
     
-    private void addField(TagnameField field, String value, IN2StdIndexer indexer){
+    private void addField(TAGNAME_FIELD field, String value, IN2StdIndexer indexer){
         indexer.addSource(field.name(), value, IN2StdSearcher.SOURCE_TYPE_TEXT);
         indexer.addFieldFTR(field.name(), field.getFieldName(), field.getAnalyzer(), field.isIndexed(), field.isStored());
     }

@@ -8,12 +8,13 @@ import java.util.stream.Stream;
 
 @AllArgsConstructor
 @Getter
-public enum TagnameField {
+public enum TAGNAME_FIELD {
 
     TAGID("TAGID", IN2StdSearcher.TOKENIZER_TERM, true, true),
     TAGNAME("TAGNAME", IN2StdSearcher.TOKENIZER_KOR_BIGRAM, true, true),
     DESCRIPTION("DESCRIPTION", IN2StdSearcher.TOKENIZER_KOR_BIGRAM, true, true),
     PLANT("PLANT", IN2StdSearcher.TOKENIZER_TERM, true, true),
+    UNIT("UNIT", IN2StdSearcher.TOKENIZER_TERM, true, true),
     CLUSTER("CLUSTER", IN2StdSearcher.TOKENIZER_TERM, true, true),
     INTEGRATION("TAGNAME/DESCRIPTION/PLANT", IN2StdSearcher.TOKENIZER_KOR_BIGRAM, true, true);
 
@@ -26,7 +27,7 @@ public enum TagnameField {
     private boolean stored;
 
     public static String[] getAllFields(){
-        return Stream.of(TagnameField.values())
+        return Stream.of(TAGNAME_FIELD.values())
                 .map(f -> f.getFieldName())
                 .toArray(String[]::new);
     }

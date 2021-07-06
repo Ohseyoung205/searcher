@@ -1,7 +1,7 @@
 package com.saltlux.khnp.searcher.tagname.model;
 
 import com.saltlux.dor.api.IN2StdSearcher;
-import com.saltlux.khnp.searcher.common.constant.TagnameField;
+import com.saltlux.khnp.searcher.common.constant.TAGNAME_FIELD;
 import lombok.Getter;
 
 import java.util.Comparator;
@@ -20,21 +20,25 @@ public class TagnameVo implements Comparator<TagnameVo>, Comparable<TagnameVo> {
 
     private Integer cluster;
 
+    private String unit;
+
     public TagnameVo(TagnameEntity e){
         tagid = String.format("%010d", e.getTagid());
         String[] tags = e.getTagname().split("-");
         tagname = tags[1];
         plant = tags[0];
         description = e.getDescription();
+        unit = e.getUnit();
         cluster = dbscanCluster();
     }
 
     public TagnameVo(int i, IN2StdSearcher searcher) {
-        tagid = searcher.getValueInDocument(i, TagnameField.TAGID.getFieldName());
-        tagname = searcher.getValueInDocument(i, TagnameField.TAGNAME.getFieldName());
-        plant = searcher.getValueInDocument(i, TagnameField.PLANT.getFieldName());
-        description = searcher.getValueInDocument(i, TagnameField.DESCRIPTION.getFieldName());
-        cluster = Integer.valueOf(searcher.getValueInDocument(i, TagnameField.CLUSTER.getFieldName()));
+        tagid = searcher.getValueInDocument(i, TAGNAME_FIELD.TAGID.getFieldName());
+        tagname = searcher.getValueInDocument(i, TAGNAME_FIELD.TAGNAME.getFieldName());
+        plant = searcher.getValueInDocument(i, TAGNAME_FIELD.PLANT.getFieldName());
+        description = searcher.getValueInDocument(i, TAGNAME_FIELD.DESCRIPTION.getFieldName());
+        unit = searcher.getValueInDocument(i, TAGNAME_FIELD.UNIT.getFieldName());
+        cluster = Integer.valueOf(searcher.getValueInDocument(i, TAGNAME_FIELD.CLUSTER.getFieldName()));
     }
 
     public TagnameVo setCluster(int cluster){

@@ -1,4 +1,4 @@
-package com.saltlux.khnp.searcher.common.config;
+package com.saltlux.khnp.searcher.common.constant;
 
 public enum TERM_SEARCH_FIELD {
 

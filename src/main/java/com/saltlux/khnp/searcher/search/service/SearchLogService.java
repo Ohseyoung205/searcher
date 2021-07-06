@@ -1,6 +1,6 @@
 package com.saltlux.khnp.searcher.search.service;
 
-import static com.saltlux.khnp.searcher.common.config.INDEX_FIELD.YYYYMMDD;
+import static com.saltlux.khnp.searcher.common.constant.INDEX_FIELD.YYYYMMDD;
 
 import java.io.StringReader;
 import java.util.ArrayList;

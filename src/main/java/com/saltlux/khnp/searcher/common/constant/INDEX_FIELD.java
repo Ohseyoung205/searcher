@@ -1,4 +1,4 @@
-package com.saltlux.khnp.searcher.common.config;
+package com.saltlux.khnp.searcher.common.constant;
 
 import java.util.Arrays;
 import java.util.Optional;

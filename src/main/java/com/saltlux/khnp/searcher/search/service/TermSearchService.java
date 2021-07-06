@@ -4,29 +4,21 @@ import com.saltlux.dor.api.IN2FacetSearcher;
 import com.saltlux.dor.api.IN2StdSearcher;
 import com.saltlux.dor.api.common.IN2FacetResult;
 import com.saltlux.dor.api.common.SearchObject;
-import com.saltlux.dor.api.common.filter.IN2FieldValueFilter;
 import com.saltlux.dor.api.common.filter.IN2TermsFilter;
-import com.saltlux.dor.api.common.query.IN2BooleanQuery;
 import com.saltlux.dor.api.common.query.IN2ParseQuery;
-import com.saltlux.dor.api.common.query.IN2PrefixQuery;
 import com.saltlux.dor.api.common.query.IN2Query;
 import com.saltlux.khnp.searcher.search.vo.IntegrationSearchResult;
-import com.saltlux.khnp.searcher.search.vo.SearchRequests;
 import com.saltlux.khnp.searcher.search.vo.TermSearchRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.Streams;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.saltlux.khnp.searcher.common.config.INDEX_FIELD.*;
 
 @Slf4j
 @Service

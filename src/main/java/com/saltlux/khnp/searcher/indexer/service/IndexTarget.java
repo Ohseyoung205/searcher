@@ -18,7 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.saltlux.khnp.searcher.indexer.common.Consts;
+import com.saltlux.khnp.searcher.indexer.config.Consts;
 import com.saltlux.khnp.searcher.indexer.indexer.HtmIndexing;
 import com.saltlux.khnp.searcher.indexer.vo.Document;
 import com.saltlux.khnp.searcher.indexer.vo.IndexVo;

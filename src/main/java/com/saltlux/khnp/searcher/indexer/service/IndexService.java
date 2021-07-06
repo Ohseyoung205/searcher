@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import com.saltlux.khnp.searcher.indexer.vo.IndexVo;
 import com.saltlux.khnp.searcher.search.model.DomainTable;
 import com.saltlux.khnp.searcher.search.repository.DomainRepository;
 
+@Slf4j
 @Service
 public class IndexService {
 
@@ -109,10 +111,10 @@ public class IndexService {
 					String[] fileNm = htmFileName.split(";");
 					Arrays.sort(fileNm);
 					for(int i=0;i<fileNm.length; i++) {
-						System.out.println(fileNm[i]+"파일 색인중....");
+						log.info(fileNm[i]+"파일 색인중....");
 						htmVo = indexHtm.indexHtm(domain, fileNm[i], domainTable.getIndexName(), htmVo, (i+1));
 						tarVo = indexTarget.indexTarget(domain, fileNm[i], domainTable.getIndexName(), tarVo, (i+1));
-						System.out.println("htmVo.isBln() ::"+htmVo.isBln());
+						log.info("htmVo.isBln() ::"+htmVo.isBln());
 						if(!htmVo.isBln() || !tarVo.isBln()) {
 							map.put("errorYn", "Y");
 							map.put("msg", fileNm[i]+" 파일 에서 오류가 발생하였습니다.");
@@ -128,7 +130,7 @@ public class IndexService {
 							DomainTable delDomain = new DomainTable();
 							delDomain = doaminList1.get(1);
 							
-//							System.out.println("delDomain.getDomainId() ::"+delDomain.getDomainId()+" || delDomain.getIndexName() ::"+delDomain.getIndexName());
+//							log.info("delDomain.getDomainId() ::"+delDomain.getDomainId()+" || delDomain.getIndexName() ::"+delDomain.getIndexName());
 							repository.delete(delDomain);
 						}
 					}
@@ -153,7 +155,7 @@ public class IndexService {
 			map.put("msg", "색인 테이블 저장중 오류가 발생하였습니다.");
 		}
 		
-		System.out.println("완료");
+		log.info("완료");
 		return map;
 	}
 	

@@ -1,4 +1,4 @@
-package com.saltlux.khnp.searcher.indexer.common;
+package com.saltlux.khnp.searcher.indexer.config;
 
 
 public final class Consts {
