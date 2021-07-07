@@ -1,5 +1,6 @@
 package com.saltlux.khnp.searcher.search.vo;
 
+import com.saltlux.khnp.searcher.search.model.SearchLog;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,4 +14,12 @@ public class SearchVo {
     private String clientIp;
     private String firstDt;
     private String lastDt;
+
+    public SearchVo(){}
+    public SearchVo(SearchLog searchLog){
+        logId = String.valueOf(searchLog.getLogId());
+        logKeyword = searchLog.getLogKeyword();
+        createDt = searchLog.getCreateDt();
+        clientIp = searchLog.getClientIp();
+    }
 }

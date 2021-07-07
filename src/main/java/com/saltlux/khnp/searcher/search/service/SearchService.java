@@ -8,6 +8,7 @@ import static com.saltlux.khnp.searcher.common.constant.INDEX_FIELD.DOMAIN;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -51,95 +52,94 @@ public class SearchService {
         searcher.addIndex(indexName);
         return searcher;
     }
-    
-    
-    public IntegrationSearchResult integrationSearch(SearchRequests requests){
-    	List<DomainTable>  doaminList = null;
-    	
-        IN2StdSearcher searcher = new IN2StdSearcher();
-        if("".equals(requests.getFilter().get(0).getFilterTerm())) {
-        	searcher.setServer(host, port);
-    		doaminList = repository.findAll();
-    		for(int i=0;i<doaminList.size(); i++) {
-    			searcher.addIndex(doaminList.get(i).getIndexName());
-    		}
-    	}else {
-    		doaminList = repository.findByDomainList(requests.getFilter().get(0).getFilterTerm());
-    		String indexName = doaminList.get(0).getIndexName();
-    		init(searcher, indexName);
-    	}
 
-        String query = requests.getQuery();
-     
-        if(StringUtils.isNotBlank(query)){									//검색할 문자가 존재할 경우
-            IN2BooleanQuery bQuery = new IN2BooleanQuery();
-            for(String strFld : requests.getField()) {						//검색필드 매핑
-            	if("number".equals(strFld)) {
-            		bQuery.add(new IN2PrefixQuery(NUMBER.fieldName, query), IN2Query.OR);
-            	}else if("title".equals(strFld)) {
-            		bQuery.add(new IN2ParseQuery(TITLE.fieldName, String.format("(%s)^%f", query, titleWeight), TITLE.analyzer), IN2Query.OR);
-            	}else if("contents".equals(strFld)) {
-            		bQuery.add(new IN2ParseQuery(CONTENTS.fieldName, query, CONTENTS.analyzer), IN2Query.OR);
-            	}
-            }
-            searcher.setQuery(bQuery);
-        }else{
-            searcher.setQuery(IN2Query.MatchingAllDocQuery());
-        }
-        
-//        if(!"".equals(requests.getFilter().get(0).getFilterTerm())) {
-//        	searcher.setFilter(new IN2TermsFilter(DOMAIN.fieldName, requests.getFilter().get(0).getFilterTerm().split(";"), IN2StdSearcher.SOURCE_TYPE_TEXT));
-//        }
-        
-        if(!CollectionUtils.isEmpty(requests.getReturns())){				//넘겨줄 값 매핑
-            requests.getReturns().stream()
-                    .forEach(r -> searcher.addReturnField(r.getReturnField().toUpperCase(), r.isHilight(), r.getReturnLength()));
-        }
-        
-        if(!CollectionUtils.isEmpty(requests.getSort())){					//정렬을 설정한다.
-        	IN2MultiSort multiSort = new IN2MultiSort();
-        	requests.getSort().stream()
-                    .forEach(r -> multiSort.add(new IN2FieldSort(r.getSortField().toUpperCase(), r.isAsc())));
-            
-        	searcher.setSort(multiSort);    	
-        }
-        
-        
-        if(requests.getLimit()== 0){
-        	requests.setLimit(10);
-        }        
-        searcher.setReturnPositionCount(requests.getOffset(), requests.getLimit());
-        
-        if(!searcher.searchDocument())	//검색 요청
-            throw new RuntimeException(searcher.getLastErrorMessage());
-        
-        List<HashMap<String, String>> documents = new ArrayList<>();
-        String strSplit = "";
-        for (int i = 0; i < searcher.getDocumentCount(); i++) {
-            HashMap<String, String> map = new HashMap<>();
-            for (SearchRequests.Return field : requests.getReturns()) {
-            	if("number".equals(field.getReturnField())) {
-            		strSplit = searcher.getValueInDocument(i, "FILENM").replaceAll("htm", "");
-            		if("4.".equals(strSplit) || "5.".equals(strSplit) || "6.".equals(strSplit)) {
-            			strSplit = "";
-            		}
-            		if("".equals(searcher.getValueInDocument(i, field.getReturnField().toUpperCase()))) {
-            			map.put("rnumber", searcher.getValueInDocument(i, field.getReturnField().toUpperCase()).replaceAll("B 2", "20").replaceAll("B 3", "30"));
-            			map.put(field.getReturnField(), strSplit+"0");
-            		}else {
-            			map.put("rnumber", searcher.getValueInDocument(i, field.getReturnField().toUpperCase()).replaceAll("B 2", "20").replaceAll("B 3", "30"));
-            			map.put(field.getReturnField(), strSplit+searcher.getValueInDocument(i, field.getReturnField().toUpperCase()).replaceAll("B 2", "20").replaceAll("B 3", "30"));
-            		}
-            	}else {
-            		map.put(field.getReturnField(), searcher.getValueInDocument(i, field.getReturnField().toUpperCase()));
-            	}
-            	
-            }
-            documents.add(map);
-        }
-        log.info("query : {} , return count: {}", requests.getQuery(), searcher.getDocumentCount());
-        return new IntegrationSearchResult(documents, searcher.getTotalDocumentCount());
-    }
+
+	public IntegrationSearchResult integrationSearch(SearchRequests requests){
+		IN2StdSearcher searcher = new IN2StdSearcher();
+		searcher.setServer(host, port);
+
+		// 필터 중 domain에 해당하는 값은 addIndex 한 이후 제거한다.
+		if(!CollectionUtils.isEmpty(requests.getFilter())){
+			Iterator<SearchRequests.Filter> iter = requests.getFilter().iterator();
+			while(iter.hasNext()){
+				SearchRequests.Filter filter = iter.next();
+				if(!"domain".equalsIgnoreCase(filter.getFilterField()))
+					continue;
+				searcher.addIndex(filter.getFilterTerm());
+				iter.remove();
+			}
+		}
+
+		String query = requests.getQuery();
+		if(StringUtils.isNotBlank(query)){									//검색할 문자가 존재할 경우
+			IN2BooleanQuery bQuery = new IN2BooleanQuery();
+			for(String strFld : requests.getField()) {						//검색필드 매핑
+				if("number".equals(strFld)) {
+					bQuery.add(new IN2PrefixQuery(NUMBER.fieldName, query), IN2Query.OR);
+				}else if("title".equals(strFld)) {
+					bQuery.add(new IN2ParseQuery(TITLE.fieldName, String.format("(%s)^%f", query, titleWeight), TITLE.analyzer), IN2Query.OR);
+				}else if("contents".equals(strFld)) {
+					bQuery.add(new IN2ParseQuery(CONTENTS.fieldName, query, CONTENTS.analyzer), IN2Query.OR);
+				}
+			}
+			searcher.setQuery(bQuery);
+		}else if(StringUtils.isNotBlank(query) && CollectionUtils.isEmpty(requests.getField())){
+			// 쿼리는 존재하지만 필드가 없을 경우
+			searcher.setQuery(new IN2ParseQuery("INTEGRATION", query, "KOR_BIGRAM"));
+		} else {
+			searcher.setQuery(IN2Query.MatchingAllDocQuery());
+		}
+
+		if(!CollectionUtils.isEmpty(requests.getReturns())){				//넘겨줄 값 매핑
+			requests.getReturns().stream()
+					.forEach(r -> searcher.addReturnField(r.getReturnField().toUpperCase(), r.isHilight(), r.getReturnLength()));
+		}
+
+		if(!CollectionUtils.isEmpty(requests.getSort())){					//정렬을 설정한다.
+			IN2MultiSort multiSort = new IN2MultiSort();
+			requests.getSort().stream()
+					.forEach(r -> multiSort.add(new IN2FieldSort(r.getSortField().toUpperCase(), r.isAsc())));
+
+			searcher.setSort(multiSort);
+		}
+
+
+		if(requests.getLimit() <= 0) {
+			requests.setLimit(10);
+		}
+
+		searcher.setReturnPositionCount(requests.getOffset(), requests.getLimit());
+
+		if(!searcher.searchDocument())	//검색 요청
+			throw new RuntimeException(searcher.getLastErrorMessage());
+
+		List<HashMap<String, String>> documents = new ArrayList<>();
+		String strSplit = "";
+		for (int i = 0; i < searcher.getDocumentCount(); i++) {
+			HashMap<String, String> map = new HashMap<>();
+			for (SearchRequests.Return field : requests.getReturns()) {
+				if("number".equals(field.getReturnField())) {
+					strSplit = searcher.getValueInDocument(i, "FILENM").replaceAll("htm", "");
+					if("4.".equals(strSplit) || "5.".equals(strSplit) || "6.".equals(strSplit)) {
+						strSplit = "";
+					}
+					if("".equals(searcher.getValueInDocument(i, field.getReturnField().toUpperCase()))) {
+						map.put("rnumber", searcher.getValueInDocument(i, field.getReturnField().toUpperCase()).replaceAll("B 2", "20").replaceAll("B 3", "30"));
+						map.put(field.getReturnField(), strSplit+"0");
+					}else {
+						map.put("rnumber", searcher.getValueInDocument(i, field.getReturnField().toUpperCase()).replaceAll("B 2", "20").replaceAll("B 3", "30"));
+						map.put(field.getReturnField(), strSplit+searcher.getValueInDocument(i, field.getReturnField().toUpperCase()).replaceAll("B 2", "20").replaceAll("B 3", "30"));
+					}
+				}else {
+					map.put(field.getReturnField(), searcher.getValueInDocument(i, field.getReturnField().toUpperCase()));
+				}
+
+			}
+			documents.add(map);
+		}
+		log.info("query : {} , return count: {}", requests.getQuery(), searcher.getDocumentCount());
+		return new IntegrationSearchResult(documents, searcher.getTotalDocumentCount());
+	}
     
     /**
      * 
