@@ -10,6 +10,7 @@ import java.util.Date;
 @Getter
 @Setter
 @Entity
+@Table(name = "custom_dictionary_log")
 public class CustomDictLog {
 
     public enum LOG_DIV{

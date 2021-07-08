@@ -6,9 +6,11 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.util.Date;
 
-@Entity
+
 @Getter
 @Setter
+@Entity
+@Table(name = "terms_dictionary_log")
 public class TermsDictLog {
 
     @Id
@@ -20,4 +22,7 @@ public class TermsDictLog {
 
     @Column
     private Date createDt;
+
+    @Column
+    private CustomDictLog.LOG_DIV eventTermsDiv;
 }

@@ -6,8 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Date;
 import java.util.List;
 
-
-public interface TermsDictLogRepository extends JpaRepository<Integer, TermsDictLog> {
+public interface TermsDictLogRepository extends JpaRepository<TermsDictLog, Integer> {
 
     public List<TermsDictLog> findByCreateDtGreaterThan(Date createDt);
 }

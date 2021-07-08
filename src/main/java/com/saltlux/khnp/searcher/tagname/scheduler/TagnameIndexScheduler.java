@@ -52,10 +52,6 @@ public class TagnameIndexScheduler {
     @PostConstruct
     public void init(){}
 
-    /*@Schedules({
-            @Scheduled(fixedRate = 1000 * 60),
-
-    })*/
     @Scheduled(cron = "* * * * * 1")
     public void clusterSchedule(){
         List<TagnameVo> list = tagnameRepository

@@ -28,9 +28,6 @@ import java.util.stream.Collectors;
 
 import static com.saltlux.khnp.searcher.common.constant.INDEX_FIELD.YYYYMMDD;
 
-;
-
-
 @Slf4j
 @Service
 public class SearchLogService {
@@ -65,9 +62,7 @@ public class SearchLogService {
 		Set<String> set = customDictRepository.findByCustomDictList()
 				.stream()
 				.collect(Collectors.toSet());
-		synchronized (stopSet){
-			stopSet = set;
-		}
+		stopSet = set;
 	}
 	
 	@Scheduled(fixedRate= 10 * 60 * 1000)
@@ -92,16 +87,16 @@ public class SearchLogService {
 
 		repository.findByLogList(createDt)
 				.stream()
-				.map(log -> new SearchVo(log))
+				.map(SearchVo::new)
 				.forEach(vo -> searchLogIndexService.indexing(vo));
 	}
     
-    public IntegrationSearchResult wordCloud(SearchVo searchVo) throws Exception{
+    public IntegrationSearchResult wordCloud(SearchVo searchVo) throws Exception {
     	IN2TMSOldOwlimSearch searcher = new IN2TMSOldOwlimSearch();
     	init(searcher);
     	if(StringUtils.isNotEmpty(searchVo.getFirstDt()) && StringUtils.isNotEmpty(searchVo.getLastDt())) {
-    		String firstDt = searchVo.getFirstDt().replaceAll("-", "");
-    		String lastDt = searchVo.getLastDt().replaceAll("-", "");
+    		String firstDt = searchVo.getFirstDt().replace("-", "");
+    		String lastDt = searchVo.getLastDt().replace("-", "");
     		searcher.setQuery(IN2RangeQuery.newStringRange(YYYYMMDD.fieldName, firstDt, lastDt, true, false));
     	}else {
     		searcher.setQuery(IN2Query.MatchingAllDocQuery());

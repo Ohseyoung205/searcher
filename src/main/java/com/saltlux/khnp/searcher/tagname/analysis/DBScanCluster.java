@@ -25,16 +25,15 @@ public class DBScanCluster<T> {
     public DBScanCluster(DistanceMeasure distanceMeasure, double eps, int minPts){
         this.eps = eps;
         this.minPts = minPts;
-//        this.distanceMap = distanceMap;
         this.distanceMeasure = distanceMeasure;
-        this.visited = new HashMap();
+        this.visited = new HashMap<>();
         this.clusters = new ArrayList<>();
     }
 
     public List<Cluster<T>> getClusters(){
         return clusters;
     }
-    
+
     public void cluster(List<T> points) {
         int progress = 0;
         for (T point : points) {
@@ -42,7 +41,7 @@ public class DBScanCluster<T> {
             if (visited.containsKey(point)) continue;
 
             List<T> neighbors = getNeighbors(point, points);
-            if(neighbors.size() < minPts){
+            if (neighbors.size() < minPts) {
                 visited.put(point, PointStatus.NOISE);
                 Cluster cluster = new Cluster(-1);
                 cluster.add(point);

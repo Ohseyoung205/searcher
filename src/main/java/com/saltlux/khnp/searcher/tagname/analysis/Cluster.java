@@ -7,7 +7,7 @@ import java.util.Comparator;
 import java.util.List;
 
 @Getter
-public class Cluster<T> implements Comparator<Cluster> {
+public class Cluster<T> implements Comparator<Cluster<T>> {
 
     private int id;
 

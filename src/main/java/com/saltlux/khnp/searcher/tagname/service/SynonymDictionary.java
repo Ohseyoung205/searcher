@@ -6,20 +6,22 @@ import com.saltlux.khnp.searcher.search.model.CustomDict;
 import com.saltlux.khnp.searcher.search.model.CustomDictLog;
 import com.saltlux.khnp.searcher.search.repository.CustomDictLogRepository;
 import com.saltlux.khnp.searcher.search.repository.CustomDictRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.ahocorasick.trie.Trie;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
-import javax.transaction.Transactional;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Component
+@Slf4j
 public class SynonymDictionary {
 
     @Autowired
@@ -35,63 +37,71 @@ public class SynonymDictionary {
 
     private Trie trie = Trie.builder().build();
 
-    private Date lastModified;
+    private Date lastModified = new Date();
 
     @PostConstruct
     public void init(){
         List<CustomDict> entities = customDictRepository.findAll();
-        lastModified = new Date();
-        for(CustomDict entity : entities){
-            if(entity.isRecYn())
-                updateDictionary(entity);
-        }
+        entities.stream()
+                .filter(CustomDict::isRecYn)
+                .forEach(this::addMap);
         buildTrieDictionary();
     }
 
-    public void updateDictionary(CustomDict entity){
-        for(String word : entity.getIndexWords(analyzer)){
-            synonymMap.put(word, entity);
-        }
-    }
-
     public void buildTrieDictionary(){
-        synchronized (trie){
-            trie = Trie.builder()
-                    .ignoreOverlaps()
-                    .onlyWholeWords()
-                    .ignoreCase()
-                    .addKeywords(synonymMap.keySet())
-                    .build();
-        }
+        Trie searcher = Trie.builder()
+                .ignoreOverlaps()
+                .onlyWholeWords()
+                .ignoreCase()
+                .addKeywords(synonymMap.keySet())
+                .build();
+        trie = searcher;
     }
 
-    @Scheduled(cron = "0 * * * * *")
-    @Transactional
-    public void update(){
+    @Scheduled(initialDelay = 0, fixedRate = 60 * 1000)
+    public void updateSchedule(){
         if(lastModified == null) return;
-        Date now = new Date();
-        List<CustomDictLog> logs = customDictLogRepository.findByCreateDtGreaterThan(now);
-        lastModified = now;
+        List<CustomDictLog> logs = customDictLogRepository.findByCreateDtGreaterThan(lastModified);
         if(CollectionUtils.isEmpty(logs)) return;
+        lastModified = new Date();
 
-        logs.stream().sorted()
-                .forEach(e -> {
-                    synonymMap.entrySet().stream()
-                            .filter(entry -> e.equals(entry))
-                            .forEach(entry -> synonymMap.remove(entry));
-                    if(e.getLogDiv() != CustomDictLog.LOG_DIV.D){
-                        updateDictionary(e.getWordEntity());
-                    }
-                });
+        log.info("synonym update {} recoreds", logs.size());
+        for(CustomDictLog log : logs){
+            CustomDict e = log.getWordEntity();
+            if(log.getLogDiv() == CustomDictLog.LOG_DIV.C){
+                addMap(e);
+            } else if(log.getLogDiv() == CustomDictLog.LOG_DIV.U){
+                updateMap(e);
+            } else if(log.getLogDiv() == CustomDictLog.LOG_DIV.D){
+                removeMap(e);
+            }
+        }
         buildTrieDictionary();
     }
 
     public String getSynonymQuery(String query){
-        return trie.tokenize(analyzer.getIndexWords(query)).stream()
+        return trie.tokenize(analyzer.getIndexWords(query))
+                .stream()
                 .map(token -> token.isMatch() ?
-                        String.format("(%s)", synonymMap.get(token.getFragment()).toSynonymQuery(analyzer).trim()) :
+                        String.format("(%s)", synonymMap.get(token.getFragment()).toSynonymQuery(analyzer)) :
                         token.getFragment().trim())
                 .collect(Collectors.joining(" "));
+    }
+
+    public void addMap(CustomDict entity){
+        entity.getAllIndexWords(analyzer).stream()
+                .filter(StringUtils::isNotEmpty)
+                .forEach(w -> synonymMap.put(w, entity));
+    }
+
+    public void removeMap(CustomDict entity){
+        Long id = entity.getWordId();
+        synonymMap.entrySet().removeIf(entry -> entry.getValue().getWordId().equals(id));
+    }
+
+    public void updateMap(CustomDict entity){
+        removeMap(entity);
+        addMap(entity);
     }
 
 }
