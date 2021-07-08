@@ -2,11 +2,13 @@ package com.saltlux.khnp.searcher.search.model;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.util.Date;
 
 @Getter
 @Entity
@@ -34,13 +36,15 @@ public class TermsDict {
   private String termsAbr;
 
   @Column
-  private String createDt;
+  private Date createDt;
 
   @Column
-  private String useYn;
+  @Type(type = "yes_no")
+  private boolean useYn;
 
   @Column
-  private String recYn;
+  @Type(type = "yes_no")
+  private boolean recYn;
 
 
 }
