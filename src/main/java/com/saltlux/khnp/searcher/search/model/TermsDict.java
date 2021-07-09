@@ -1,7 +1,6 @@
 package com.saltlux.khnp.searcher.search.model;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.Column;
@@ -12,7 +11,6 @@ import java.util.Date;
 
 @Getter
 @Entity
-@NoArgsConstructor
 @Table(name = "terms_dictionary")
 public class TermsDict {
 

@@ -2,7 +2,6 @@ package com.saltlux.khnp.searcher.search.model;
 
 import com.saltlux.khnp.searcher.deepqa.analyzer.TMSAnalyzer;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Type;
@@ -17,7 +16,6 @@ import java.util.stream.Stream;
 @Getter
 @Setter
 @Entity
-@NoArgsConstructor
 @Table(name = "custom_dictionary")
 public class CustomDict {
 
@@ -53,7 +51,7 @@ public class CustomDict {
         return Stream.of(subWord.split(","), new String[]{mainWord})
                 .flatMap(Arrays::stream)
                 .map(w -> analyzer.getIndexWords(w).toLowerCase())
-                .filter(w -> StringUtils.isNotEmpty(w))
+                .filter(StringUtils::isNotEmpty)
                 .distinct()
                 .sorted()
                 .collect(Collectors.toList());

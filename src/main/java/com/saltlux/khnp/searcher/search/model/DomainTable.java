@@ -1,13 +1,15 @@
 package com.saltlux.khnp.searcher.search.model;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.Type;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import java.util.Date;
 
 @Getter
 @Setter
@@ -25,4 +27,11 @@ public class DomainTable {
 	
 	@Column
 	private String indexName; 	//색인테이블명
+
+	@Column
+	private Date createDt;
+
+	@Column
+	@Type(type = "yes_no")
+	private boolean recYn;
 }

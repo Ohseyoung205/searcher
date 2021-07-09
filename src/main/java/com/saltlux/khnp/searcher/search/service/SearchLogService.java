@@ -59,10 +59,9 @@ public class SearchLogService {
 
 	@Scheduled(initialDelay = 0, fixedRate = 60 * 1000)
 	public void loadStopDictionary(){
-		Set<String> set = customDictRepository.findByCustomDictList()
+		stopSet = customDictRepository.findByCustomDictList()
 				.stream()
 				.collect(Collectors.toSet());
-		stopSet = set;
 	}
 	
 	@Scheduled(fixedRate= 10 * 60 * 1000)

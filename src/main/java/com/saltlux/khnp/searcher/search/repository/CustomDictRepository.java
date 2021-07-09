@@ -19,7 +19,7 @@ public interface CustomDictRepository extends JpaRepository<CustomDict, Long> {
     List<CustomDict> findByWordDivExtra(@Param("wordDiv")CustomDict.WORD_DIV wordDiv, @Param("keyword")String keyword, @Param("recYn")boolean recYn);
     
  // 불용어 조회
-    @Query("select d.mainWord from CustomDict d where d.wordDiv = 'B' and d.useYn = 'Y'")
+    @Query("select d.mainWord from CustomDict d where d.wordDiv = 'B' and d.recYn = 'Y'")
     List<String> findByCustomDictList();
 
 }

@@ -1,7 +1,6 @@
 package com.saltlux.khnp.searcher.search.model;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -10,7 +9,6 @@ import javax.persistence.Table;
 
 @Getter
 @Entity
-@NoArgsConstructor
 @Table(name = "search_log")
 public class SearchLog {
 
