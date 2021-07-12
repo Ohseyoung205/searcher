@@ -41,7 +41,12 @@ public class IndexHtm {
 	@Value("${pattern1.title3}")
     private String ptnTitle3;
 	
-	public IndexVo indexHtm(String domain, String fileNm, String indexName, IndexVo indexVo, int fileNum) throws Exception{
+	@Value("${pattern1.tags0}")
+	private String tags0;
+	@Value("${pattern1.ptns0}")
+	private String ptns0;
+	
+	public IndexVo indexHtm(String domain, String fileNm, String indexName, IndexVo indexVo, int fileNum, String path) throws Exception{
 	
 		String title1_pattern1 = ptnTitle1+Consts.TWOSPACE+".*"; // 1.0, 2.0 ,3.0 구분
 		String title2_pattern1 = ptnTitle2+Consts.TWOSPACE+".*";// 1.1, 1.2, 1.3 ...2.1
@@ -67,8 +72,8 @@ public class IndexHtm {
 		
 		String readLine = null ;
 	    int lineNum = 0;			//라인 넘버
-	    Pattern tags = Pattern.compile("<(/)?([a-zA-Z]*)(\\s[a-zA-Z]*=[^>]*)?(\\s)*(/)?>");
-	    Pattern ptns = Pattern.compile("<P CLASS=HStyle(8|16|18|29).*?>(.*?)<SPAN style='HWP-TAB:1;'>");
+	    Pattern tags = Pattern.compile(tags0);
+	    Pattern ptns = Pattern.compile(ptns0);
 	    Matcher m;
 	    
 	    indexVo.setStartLine(0);
@@ -80,7 +85,7 @@ public class IndexHtm {
 	    String orderNum = "";
 		
 		try{
-			File file = new File(htmFilePath+File.separator+domain+File.separator+fileNm);
+			File file = new File(htmFilePath+File.separator+path+File.separator+fileNm);
 			BufferedReader bufReader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "utf-8"));
 
 	        while((readLine =  bufReader.readLine()) != null ){
@@ -332,11 +337,11 @@ public class IndexHtm {
 		if(voList.size() > 0) {
 			boolean bln = false;
 			if("Y".equals(indexVo.getMemberGb())) {
-				bln = htmIndexing.indexing(voList, indexName, 3);
+				bln = htmIndexing.indexing(voList, indexName, 1);
 				indexVo.setBln(bln);
 				return indexVo;
 			}else {
-				bln = htmIndexing.indexing(voList, indexName, 1);
+				bln = htmIndexing.indexing(voList, indexName, 3);
 				indexVo.setBln(bln);
 				return indexVo;
 			}

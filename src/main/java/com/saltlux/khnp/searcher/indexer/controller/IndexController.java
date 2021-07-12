@@ -1,5 +1,6 @@
 package com.saltlux.khnp.searcher.indexer.controller;
 
+import com.saltlux.khnp.searcher.common.CommonResponseVo;
 import com.saltlux.khnp.searcher.indexer.service.IndexService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,9 +19,9 @@ public class IndexController {
     IndexService indexService;
 
     @RequestMapping(value="/khnpIndex")
-    public Map<String, String> khnpIndex(String domain) throws Exception{
-        log.info("색인 및 htm 변환 시작");
-        return indexService.indexService(domain);
-    }
+    public CommonResponseVo khnpIndex(String documentId, String path) throws Exception{
+		System.out.println("색인 및 htm 변환 시작");
+		return new CommonResponseVo(indexService.indexService(documentId, path));
+	}
 
 }

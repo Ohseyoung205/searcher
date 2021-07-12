@@ -47,7 +47,7 @@ public class IndexTarget {
 	@Value("${pattern3.ptns2}")
     private String ptnPtns2;
 	
-public IndexVo indexTarget(String domain, String fileNm, String indexName, IndexVo indexVo, int fileNum) throws Exception{
+public IndexVo indexTarget(String domain, String fileNm, String indexName, IndexVo indexVo, int fileNum, String path) throws Exception{
 		
 		String title1_pattern1 = ptnTitle1+Consts.TWOSPACE+".*"; // 1.0, 2.0 ,3.0 구분
 		String title2_pattern1 = ptnTitle2+Consts.TWOSPACE+".*"; // 1.1, 1.2, 1.3 ...2.1
@@ -79,7 +79,7 @@ public IndexVo indexTarget(String domain, String fileNm, String indexName, Index
 	    indexVo.setLevel("");
 		
 		try{
-			File file = new File(htmFilePath+File.separator+domain+File.separator+fileNm);
+			File file = new File(htmFilePath+File.separator+path+File.separator+fileNm);
 			BufferedReader bufReader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "utf-8"));
 
 	        while((readLine =  bufReader.readLine()) != null ){

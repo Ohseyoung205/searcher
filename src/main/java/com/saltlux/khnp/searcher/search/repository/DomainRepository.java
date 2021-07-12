@@ -13,4 +13,7 @@ public interface DomainRepository extends JpaRepository<DomainTable, Long> {
 
 	@Query("select d from DomainTable d where d.indexName = :domain order by d.domainId desc")
     List<DomainTable> findByDomainList(@Param("domain") String domain);
+	
+	@Query("select d from DomainTable d where d.uuid = :uuid order by d.domainId desc")
+    List<DomainTable> findByUuidList(@Param("uuid") String uuid);
 }

@@ -24,6 +24,9 @@ public class DomainTable {
 	
 	@Column
 	private String indexName; 	//색인테이블명
+	
+	@Column
+	private String uuid; 	//색인테이블명
 
 	@Column
 	private Date createDt;
