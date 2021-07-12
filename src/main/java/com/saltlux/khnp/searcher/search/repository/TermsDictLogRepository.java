@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface TermsDictLogRepository extends JpaRepository<TermsDictLog, Integer> {
 
-    public List<TermsDictLog> findByCreateDtGreaterThan(Date createDt);
+    public List<TermsDictLog> findByCreateDtGreaterThanOrderByCreateDt(Date createDt);
 }

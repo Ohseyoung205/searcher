@@ -24,5 +24,6 @@ public class TermsDictLog {
     private Date createDt;
 
     @Column
-    private CustomDictLog.LOG_DIV eventTermsDiv;
+    @Enumerated(EnumType.STRING)
+    private CustomDictLog.LOG_DIV logDiv;
 }

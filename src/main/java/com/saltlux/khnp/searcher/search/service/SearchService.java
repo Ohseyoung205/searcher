@@ -49,17 +49,32 @@ public class SearchService {
 		IN2StdSearcher searcher = new IN2StdSearcher();
 		searcher.setServer(host, port);
 
-		// 필터 중 domain에 해당하는 값은 addIndex 한 이후 제거한다.
-		if(!CollectionUtils.isEmpty(requests.getFilter())){
+        List<String> domainIndexList = new ArrayList<>();
+        if(!CollectionUtils.isEmpty(requests.getFilter())){
 			Iterator<SearchRequests.Filter> iter = requests.getFilter().iterator();
 			while(iter.hasNext()){
 				SearchRequests.Filter filter = iter.next();
-				if(!"domain".equalsIgnoreCase(filter.getFilterField()))
+				if(!"domain".equalsIgnoreCase(filter.getFilterField()) || StringUtils.isEmpty(filter.getFilterTerm()))
 					continue;
-				searcher.addIndex(filter.getFilterTerm());
-				iter.remove();
+
+                Integer documentId = Integer.valueOf(filter.getFilterTerm());
+                plantOperationDocumentRepository.findByDocumentId(documentId)
+                        .ifPresent(doc -> {
+                            domainIndexList.add(doc.getDomainTable().getIndexName());
+                            iter.remove();
+                        });
 			}
 		}
+        if (domainIndexList.size() <= 0){
+            plantOperationDocumentRepository.findByDomainTableNotNull()
+                    .stream()
+                    .filter(doc -> doc.getDomainTable() != null)
+                    .filter(doc -> StringUtils.isNotEmpty(doc.getDomainTable().getIndexName()))
+                    .map(doc -> doc.getDomainTable().getIndexName())
+                    .forEach(indexName -> searcher.addIndex(indexName));
+        }else{
+            domainIndexList.forEach(indexName -> searcher.addIndex(indexName));
+        }
 
 		String query = requests.getQuery();
 		if(StringUtils.isNotBlank(query)){									//검색할 문자가 존재할 경우

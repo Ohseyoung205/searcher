@@ -39,16 +39,16 @@ public class TermIndexService {
     @Scheduled(initialDelay = 0, fixedRate = 60 * 1000)
     public void termIndexScheduler() {
         if(lastModified == null) return;
-        List<TermsDictLog> logs = termsDictLogRepository.findByCreateDtGreaterThan(lastModified);
+        List<TermsDictLog> logs = termsDictLogRepository.findByCreateDtGreaterThanOrderByCreateDt(lastModified);
         if(CollectionUtils.isEmpty(logs)) return;
         lastModified = new Date();
 
         for(TermsDictLog log : logs){
-            if(log.getEventTermsDiv() == CustomDictLog.LOG_DIV.C){
+            if(log.getLogDiv() == CustomDictLog.LOG_DIV.C){
                 add(log.getTermsDict());
-            }else if(log.getEventTermsDiv() == CustomDictLog.LOG_DIV.U){
+            }else if(log.getLogDiv() == CustomDictLog.LOG_DIV.U){
                 update(log.getTermsDict());
-            }else if(log.getEventTermsDiv() == CustomDictLog.LOG_DIV.D){
+            }else if(log.getLogDiv() == CustomDictLog.LOG_DIV.D){
                 remove(log.getTermsDict());
             }
         }
