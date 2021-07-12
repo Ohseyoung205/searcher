@@ -18,7 +18,7 @@ public class TMSTest {
 
 
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        Map<Long, String> rs = analyzer.getRawStream("솔트룩스에 입사하신걸 축하드립니다.", TYPE.LANG_KOR | TYPE.TYPE_NE_STR);
+        Map<Long, String> rs = analyzer.getRawStream("엑소텍에 입사하신걸 축하드립니다.", TYPE.LANG_KOR | TYPE.TYPE_POS_STR);
         for (Map.Entry<Long, String> longStringEntry : rs.entrySet()) {
             JsonElement je = new JsonParser().parse(longStringEntry.getValue());
             String prettyJsonString = gson.toJson(je);
