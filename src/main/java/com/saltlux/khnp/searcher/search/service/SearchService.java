@@ -1,25 +1,7 @@
 package com.saltlux.khnp.searcher.search.service;
 
-import static com.saltlux.khnp.searcher.common.constant.INDEX_FIELD.CONTENTS;
-import static com.saltlux.khnp.searcher.common.constant.INDEX_FIELD.NUMBER;
-import static com.saltlux.khnp.searcher.common.constant.INDEX_FIELD.TITLE;
-import static com.saltlux.khnp.searcher.common.constant.INDEX_FIELD.INDEXGB;
-import static com.saltlux.khnp.searcher.common.constant.INDEX_FIELD.DOMAIN;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-
 import com.saltlux.dor.api.IN2StdSearcher;
 import com.saltlux.dor.api.common.SearchObject;
-import com.saltlux.dor.api.common.filter.IN2TermsFilter;
 import com.saltlux.dor.api.common.query.IN2BooleanQuery;
 import com.saltlux.dor.api.common.query.IN2ParseQuery;
 import com.saltlux.dor.api.common.query.IN2PrefixQuery;
@@ -27,11 +9,20 @@ import com.saltlux.dor.api.common.query.IN2Query;
 import com.saltlux.dor.api.common.sort.IN2FieldSort;
 import com.saltlux.dor.api.common.sort.IN2MultiSort;
 import com.saltlux.khnp.searcher.search.model.DomainTable;
-import com.saltlux.khnp.searcher.search.repository.DomainRepository;
+import com.saltlux.khnp.searcher.search.model.PlantOperationDocument;
+import com.saltlux.khnp.searcher.search.repository.PlantOperationDocumentRepository;
 import com.saltlux.khnp.searcher.search.vo.IntegrationSearchResult;
 import com.saltlux.khnp.searcher.search.vo.SearchRequests;
-
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import java.util.*;
+
+import static com.saltlux.khnp.searcher.common.constant.INDEX_FIELD.*;
 
 @Slf4j
 @Service
@@ -45,7 +36,7 @@ public class SearchService {
     private Integer port;
     
     @Autowired
-	private DomainRepository repository;
+	private PlantOperationDocumentRepository plantOperationDocumentRepository;
 
     private SearchObject init(SearchObject searcher, String indexName){
         searcher.setServer(host, port);
@@ -143,14 +134,19 @@ public class SearchService {
     
     /**
      * 
-     * @param plant : 원전 호기선택 ex)고리,월성
+     * @param domain : 원전 호기선택 ex)고리,월성
      * @param query : 운전 기술지침서의 목차 번호. 비어있을 경우 최상위 (root)로 인식한다.
      * @param inferred : 대상의 하위만 출력할 경우 false, 대상 하위의 전체를 출력할 경우 true로 입력. 톡봇에서 운전기술지침서의 해당 depth 하위의 결과를 출력하기 위해 사용.
      * @return
      */
-    public IntegrationSearchResult hierarchySearch(String plant, String query, boolean inferred ){
-    	List<DomainTable>  doaminList = repository.findByDomainList(plant);
-    	String indexName = doaminList.get(0).getIndexName();
+    public IntegrationSearchResult hierarchySearch(String domain, String query, boolean inferred ){
+		Optional<PlantOperationDocument> optional = plantOperationDocumentRepository.findByDocumentId(Integer.valueOf(domain));
+		if(!optional.isPresent() || optional.get().getDomainTable() == null){
+			new IntegrationSearchResult(new ArrayList<>(), 0);
+		}
+
+		DomainTable d = optional.get().getDomainTable();
+    	String indexName = d.getIndexName();
 
     	IN2StdSearcher searcher = new IN2StdSearcher();
     	init(searcher, indexName);
@@ -167,12 +163,7 @@ public class SearchService {
     		searcher.setQuery(bQuery);
     	}
     	
-    	if(!"".equals(plant)) {
-			searcher.setFilter(new IN2TermsFilter(DOMAIN.fieldName, plant.split(";"), IN2StdSearcher.SOURCE_TYPE_TEXT));
-		}
-    	
-
-    	searcher.setSort(new IN2FieldSort("ORDERNUM", true, "long"));    	
+    	searcher.setSort(new IN2FieldSort("ORDERNUM", true, "long"));
         searcher.setReturnPositionCount(0, 10000);
         
         searcher.addReturnField(new String[]{"TITLE0","TITLE1","TITLE2","TITLE3", "NUMBER0", "NUMBER1","NUMBER2","NUMBER3","POSITION","FILENM","LEVEL", "ORDERNUM"});

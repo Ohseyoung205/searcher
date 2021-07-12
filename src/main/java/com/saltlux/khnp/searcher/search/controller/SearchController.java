@@ -27,10 +27,10 @@ public class SearchController {
     }
 
     @GetMapping("/table")
-    public CommonResponseVo hierarchy(@RequestParam("plant") String plant,
+    public CommonResponseVo hierarchy(@RequestParam("domain") String domain,
                                       @RequestParam("query") String query,
                                       @RequestParam("inferred") boolean inferred) {
-    	return new CommonResponseVo(searchService.hierarchySearch(plant, query, inferred));
+    	return new CommonResponseVo(searchService.hierarchySearch(domain, query, inferred));
     }
     
     @GetMapping("/wordCloud")
