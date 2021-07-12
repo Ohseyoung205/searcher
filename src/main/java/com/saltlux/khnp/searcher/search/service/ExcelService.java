@@ -62,7 +62,7 @@ public class ExcelService {
 
   //용어집 이름이 있을 때
   public ByteArrayInputStream loadTermsDictByKeyword(String source, String field, String keyword) {
-    String recYn = "Y";
+    boolean recYn = true;
     List<TermsDict> termsDicts;
     if ("koName".equalsIgnoreCase(field)) {
       termsDicts = termsDictRepository.findByTermsDivEqualsAndTermsKoNameContainingAndRecYnEquals(source, keyword, recYn);
@@ -81,7 +81,7 @@ public class ExcelService {
 
   // 용어집이름이 전체(공백)일 때
   public ByteArrayInputStream loadTermsDictByKeywordNoTermsDiv(String field, String keyword) {
-    String recYn = "Y";
+    boolean recYn = true;
     List<TermsDict> termsDicts;
     if ("koName".equalsIgnoreCase(field)) {
       termsDicts = termsDictRepository.findByTermsKoNameContainingAndRecYnEquals(keyword, recYn);

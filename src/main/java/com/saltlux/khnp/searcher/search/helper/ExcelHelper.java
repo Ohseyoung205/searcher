@@ -116,6 +116,7 @@ public class ExcelHelper {
   public static ByteArrayInputStream termsDictToExcel(List<TermsDict> termsDicts) {
     String[] HEADERs = {"구분", "용어명", "영문명",  "약어", "설명", "등록일"};
     String SHEET = "용어사전";
+    DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream();) {
       Sheet sheet = workbook.createSheet(SHEET);
 
@@ -136,7 +137,7 @@ public class ExcelHelper {
         row.createCell(2).setCellValue(termsDict.getTermsEaName());
         row.createCell(3).setCellValue(termsDict.getTermsAbr());
         row.createCell(4).setCellValue(termsDict.getTermsContents());
-        row.createCell(5).setCellValue(termsDict.getCreateDt());
+        row.createCell(5).setCellValue(format.format(termsDict.getCreateDt()));
       }
 
       workbook.write(out);
