@@ -19,19 +19,20 @@ import java.util.stream.Collectors;
 public class LogAspect {
 
     @Around("within(com.saltlux.khnp..*Service)")
-    public Object logging(ProceedingJoinPoint pjp) {
+    public Object logging(ProceedingJoinPoint pjp) throws Throwable {
         String params = getRequestParams();
         long startAt = System.currentTimeMillis();
         log.debug("----------> REQUEST : {}({}) = {}", pjp.getSignature().getDeclaringTypeName(), pjp.getSignature().getName(), params);
         Object result = null;
         try {
             result = pjp.proceed();
+            return result;
         } catch (Throwable throwable) {
-            throwable.printStackTrace();
+            throw throwable;
+        } finally {
+            long endAt = System.currentTimeMillis();
+            log.debug("----------> RESPONSE : {}({}) = {} ({}ms)", pjp.getSignature().getDeclaringTypeName(), pjp.getSignature().getName(), result, endAt-startAt);
         }
-        long endAt = System.currentTimeMillis();
-        log.debug("----------> RESPONSE : {}({}) = {} ({}ms)", pjp.getSignature().getDeclaringTypeName(), pjp.getSignature().getName(), result, endAt-startAt);
-        return result;
     }
 
     private String getRequestParams() {
