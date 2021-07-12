@@ -23,9 +23,6 @@ public class DomainTable {
 	private Integer domainId; 	//도메인 키
 	
 	@Column
-	private String name; 		//도메인 명
-	
-	@Column
 	private String indexName; 	//색인테이블명
 
 	@Column

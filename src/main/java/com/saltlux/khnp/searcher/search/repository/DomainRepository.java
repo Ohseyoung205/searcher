@@ -11,6 +11,6 @@ import com.saltlux.khnp.searcher.search.model.DomainTable;
 
 public interface DomainRepository extends JpaRepository<DomainTable, Long> {
 
-	@Query("select d from DomainTable d where d.name = :domain order by d.domainId desc")
+	@Query("select d from DomainTable d where d.indexName = :domain order by d.domainId desc")
     List<DomainTable> findByDomainList(@Param("domain") String domain);
 }
