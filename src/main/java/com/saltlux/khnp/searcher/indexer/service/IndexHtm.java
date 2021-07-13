@@ -46,7 +46,7 @@ public class IndexHtm {
 	@Value("${pattern1.ptns0}")
 	private String ptns0;
 	
-	public IndexVo indexHtm(String domain, String fileNm, String indexName, IndexVo indexVo, int fileNum, String path) throws Exception{
+	public IndexVo indexHtm(String domain, String fileNm, String indexName, IndexVo indexVo, int fileNum, String path, int documentId) throws Exception{
 	
 		String title1_pattern1 = ptnTitle1+Consts.TWOSPACE+".*"; // 1.0, 2.0 ,3.0 구분
 		String title2_pattern1 = ptnTitle2+Consts.TWOSPACE+".*";// 1.1, 1.2, 1.3 ...2.1
@@ -128,6 +128,7 @@ public class IndexHtm {
                    				indexVo.setLevel("1");
                    				indexVo.setIndexgb("index");
                    				indexVo.setStartLine(lineNum);
+                   				indexVo.setOrderNum(orderNum);
                    				indexVo.setBefo1(indexVo.getTagStr().trim());
                    			}
                    		}else if(indexVo.getTagStr().matches(title2_pattern1)) {		//2 단계
@@ -143,6 +144,7 @@ public class IndexHtm {
                     			indexVo.setLevel("2");
                     			indexVo.setIndexgb("index");
                     			indexVo.setStartLine(lineNum);
+                    			indexVo.setOrderNum(orderNum);
                     			indexVo.setBefo2(indexVo.getTagStr().trim());
                     		}
                    		}else if(indexVo.getTagStr().matches(title3_pattern1)) {		//3 단계
@@ -158,6 +160,7 @@ public class IndexHtm {
                        				indexVo.setLevel("3");
                        				indexVo.setIndexgb("index");
                        				indexVo.setStartLine(lineNum);
+                       				indexVo.setOrderNum(orderNum);
                        				indexVo.setBefo3(indexVo.getTagStr().trim());
                        			}
                    			}
@@ -286,7 +289,7 @@ public class IndexHtm {
     								map.put("ETC", "");
     								map.put("FILENAME", fileNm);
     								map.put("INDEXGB", indexVo.getIndexgb());
-    								map.put("ORDERNUM", orderNum);
+    								map.put("ORDERNUM", indexVo.getOrderNum());
     									
     								resultMap.put(key, map);
                     			}
@@ -330,6 +333,8 @@ public class IndexHtm {
 			    vo.setIndexgb(tm.get(key).get("INDEXGB"));
 			    vo.setDomain(domain);
 			    vo.setOrderNum(Long.parseLong(tm.get(key).get("ORDERNUM")));
+			    vo.setUuid(path);
+				vo.setDocumentId(String.valueOf(documentId));	
 				voList.add(vo);
 			}
 		}

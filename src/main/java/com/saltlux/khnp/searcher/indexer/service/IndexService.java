@@ -64,7 +64,6 @@ public class IndexService {
 		
 		List<DomainTable>  doaminList = repository.findAll(Sort.by(Sort.Direction.DESC,"domainId"));
 		
-		System.out.println("doaminList.get(0).getDomainId() ::"+doaminList.get(0).getDomainId());
 		DomainTable domainTable = new DomainTable();
 		String indexDomain = "KHNP_DOCUMENT";
 		indexDomain = indexDomain+optional.get().getDocumentId();
@@ -74,7 +73,7 @@ public class IndexService {
 			domainTable.setUuid(path);
 			domainTable.setRecYn(true);
 			domainTable.setCreateDt(new Date());
-			domainTable.setIndexName(indexDomain+String.format("%05d", 0));
+			domainTable.setIndexName(indexDomain+String.format("%05d", 1));
 			domainTable = repository.save(domainTable);
 			
 		}else {
@@ -82,7 +81,7 @@ public class IndexService {
 			domainTable.setUuid(path);
 			domainTable.setRecYn(true);
 			domainTable.setCreateDt(new Date());
-			domainTable.setIndexName(indexDomain+String.format("%05d", doaminList.get(0).getDomainId()));
+			domainTable.setIndexName(indexDomain+String.format("%05d", doaminList.get(0).getDomainId()+1));
 			domainTable = repository.save(domainTable);
 		}
 		
@@ -114,8 +113,8 @@ public class IndexService {
 					Arrays.sort(fileNm);
 					for(int i=0;i<fileNm.length; i++) {
 						System.out.println(fileNm[i]+"파일 색인중....");
-						htmVo = indexHtm.indexHtm(optional.get().getName(), fileNm[i], domainTable.getIndexName(), htmVo, (i+1), path);
-						tarVo = indexTarget.indexTarget(optional.get().getName(), fileNm[i], domainTable.getIndexName(), tarVo, (i+1), path);
+						htmVo = indexHtm.indexHtm(optional.get().getName(), fileNm[i], domainTable.getIndexName(), htmVo, (i+1), path, optional.get().getDocumentId());
+						tarVo = indexTarget.indexTarget(optional.get().getName(), fileNm[i], domainTable.getIndexName(), tarVo, (i+1), path, optional.get().getDocumentId());
 
 						if(!htmVo.isBln() || !tarVo.isBln()) {
 							map.put("errorYn", "Y");
@@ -128,13 +127,7 @@ public class IndexService {
 						documents.add(map);
 						return new IntegrationSearchResult(documents, 0);
 					}else {
-//						List<DomainTable>  doaminList1 = repository.findByDomainList(path);
-//						if(doaminList1.size() > 1) {
-//							htmIndexing.dropIndex(doaminList1.get(1).getIndexName());
-//							DomainTable delDomain = new DomainTable();
-//							delDomain = doaminList1.get(1);
-//							repository.delete(delDomain);
-//						}
+						htmIndexing.dropIndex(optional.get().getDomainTable().getIndexName());
 						PlantOperationDocument documentVo = new PlantOperationDocument();
 						documentVo = optional.get();
 						documentVo.setDomainTable(domainTable);

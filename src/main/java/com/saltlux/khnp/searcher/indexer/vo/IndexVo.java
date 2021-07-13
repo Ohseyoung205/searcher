@@ -37,6 +37,7 @@ public class IndexVo {
 	private String content = "";
 	private String imgChk = "";
 	private int imgLineNum = 0;
+	private String orderNum = "";
 	private boolean  bln = false;
 
 }
