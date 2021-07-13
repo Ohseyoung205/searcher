@@ -226,7 +226,8 @@ public class IndexHtm {
                 				if("".equals(indexVo.getBigTitleGb())) {
                 					indexVo.setIndexgb("index");
                     				indexVo.setBigTitleGb("1");
-                    			}            
+                    			} 
+                	
 
                     			String key = "";
                 				if("1".equals(indexVo.getBigTitleGb())) {
@@ -267,6 +268,7 @@ public class IndexHtm {
                    					if(!"1.".equals(indexVo.getTmpStr1().trim()) && !"2.".equals(indexVo.getTmpStr1().trim()) && !"3.".equals(indexVo.getTmpStr1().trim())
                    							&& !"운전제한조건 3.4.10".equals(indexVo.getTmpStr1().trim())) {
                    						map.put("TITLE4_1", indexVo.getTmpStr1().replace("(계속)", "").trim());
+                   						
                    					}else {
                    						map.put("TITLE4_1", "");
                    					}
@@ -333,7 +335,12 @@ public class IndexHtm {
 			    vo.setEtc(tm.get(key).get("ETC"));
 			    vo.setLevel(tm.get(key).get("LEVEL"));
 			    vo.setFileNm(tm.get(key).get("FILENAME"));
-			    vo.setIndexgb(tm.get(key).get("INDEXGB"));
+			    if("".equals(vo.getTitle4_1())) {
+			    	vo.setIndexgb(tm.get(key).get("INDEXGB"));
+			    }else {
+			    	vo.setIndexgb("target");
+			    }
+			    
 			    vo.setDomain(domain);
 			    vo.setOrderNum(Long.parseLong(tm.get(key).get("ORDERNUM")));
 			    vo.setUuid(uuid[uuid.length-1]);

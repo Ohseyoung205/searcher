@@ -205,13 +205,13 @@ public class TargetIndexService {
 		    }
 			fos.close();
 			
-//			Path filePath = Paths.get(copyFilePath);
-//			//############### 파일 소유자 변경 ###############
-//			UserPrincipal hostUid = filePath.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByName("saltlux");
-//			Files.setOwner(filePath, hostUid);
-//			//############### 파일 그룹 변경 ################
-//			GroupPrincipal group =filePath.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByGroupName("saltlux");
-//			Files.getFileAttributeView(filePath, PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS).setGroup(group);
+			Path filePath = Paths.get(copyFilePath);
+			//############### 파일 소유자 변경 ###############
+			UserPrincipal hostUid = filePath.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByName("saltlux");
+			Files.setOwner(filePath, hostUid);
+			//############### 파일 그룹 변경 ################
+			GroupPrincipal group =filePath.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByGroupName("saltlux");
+			Files.getFileAttributeView(filePath, PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS).setGroup(group);
 			
 		}catch(Exception e) {
 			e.printStackTrace();

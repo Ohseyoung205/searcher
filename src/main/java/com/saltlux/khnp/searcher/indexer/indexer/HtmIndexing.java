@@ -78,8 +78,9 @@ public class HtmIndexing {
 			    in2StdIndexer.addSource("UUID", data.getUuid(), in2StdIndexer.SOURCE_TYPE_TEXT);
 			    in2StdIndexer.addSource("DOCUMENT_ID", data.getDocumentId(), in2StdIndexer.SOURCE_TYPE_TEXT);
 			    if(tmpInt == 3) {
+//			    	System.out.println("data.getMemberGb() ::"+data.getMemberGb()+" ||"+data.getTitle3());
 			    	if("Y".equals(data.getMemberGb())) {
-			    		in2StdIndexer.addSource("TOKENTITLE", data.getTitle1(), in2StdIndexer.SOURCE_TYPE_TEXT);	
+			    		in2StdIndexer.addSource("TOKENTITLE", data.getTitle3(), in2StdIndexer.SOURCE_TYPE_TEXT);	
 			    	}else {
 			    		in2StdIndexer.addSource("TOKENTITLE", "", in2StdIndexer.SOURCE_TYPE_TEXT);
 			    	}
