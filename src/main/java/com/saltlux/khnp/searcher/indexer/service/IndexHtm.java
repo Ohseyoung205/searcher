@@ -91,10 +91,10 @@ public class IndexHtm {
 	        while((readLine =  bufReader.readLine()) != null ){
 	            map = new HashMap<String, String>();
 	            lineNum++;
-	            if("<BODY>".equals(readLine)) {
+	            if(readLine.contains("<P CLASS=HStyle38 STYLE='line-height:150%;'>5.7<SPAN style='HWP-TAB:1;'>") ) {
 	            	indexVo.setStartNum(lineNum);
 	            }
-	            	
+	            
 	            if(indexVo.getStartNum() > 0) {
 	            	indexVo.setTmpStr(readLine);
 	            	orderNum= fileNum+String.format("%06d", lineNum);
@@ -290,6 +290,7 @@ public class IndexHtm {
     								map.put("FILENAME", fileNm);
     								map.put("INDEXGB", indexVo.getIndexgb());
     								map.put("ORDERNUM", indexVo.getOrderNum());
+    								map.put("MENUBERGB", indexVo.getMemberGb());
     									
     								resultMap.put(key, map);
                     			}
@@ -309,6 +310,8 @@ public class IndexHtm {
 		TreeMap<String, Map<String, String>> tm = new TreeMap<String, Map<String, String>>(resultMap);
 		Iterator<String> iteratorKey = tm.keySet().iterator(); // 키값 오름차순 정렬(기본)
 		List<Document> voList = new ArrayList<Document>();
+		String[] uuid = path.split("/");
+
 		while (iteratorKey.hasNext()) {
 			String key = iteratorKey.next();
 			Document vo = new Document();
@@ -333,23 +336,18 @@ public class IndexHtm {
 			    vo.setIndexgb(tm.get(key).get("INDEXGB"));
 			    vo.setDomain(domain);
 			    vo.setOrderNum(Long.parseLong(tm.get(key).get("ORDERNUM")));
-			    vo.setUuid(path);
+			    vo.setUuid(uuid[uuid.length-1]);
 				vo.setDocumentId(String.valueOf(documentId));	
+				vo.setMemberGb(tm.get(key).get("MENUBERGB"));
 				voList.add(vo);
 			}
 		}
 
 		if(voList.size() > 0) {
 			boolean bln = false;
-			if("Y".equals(indexVo.getMemberGb())) {
-				bln = htmIndexing.indexing(voList, indexName, 1);
-				indexVo.setBln(bln);
-				return indexVo;
-			}else {
-				bln = htmIndexing.indexing(voList, indexName, 3);
-				indexVo.setBln(bln);
-				return indexVo;
-			}
+			bln = htmIndexing.indexing(voList, indexName, 3);
+			indexVo.setBln(bln);
+			return indexVo;
 		}else {
 			indexVo.setBln(false);
 			return indexVo;

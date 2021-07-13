@@ -42,10 +42,19 @@ public class IndexTarget {
 	@Value("${pattern1.title3}")
     private String ptnTitle3;
 	
+	@Value("${pattern1.tags0}")
+	private String tags0;
+	@Value("${pattern1.ptns0}")
+	private String ptns0;
+	
 	@Value("${pattern3.ptns1}")
     private String ptnPtns1;
 	@Value("${pattern3.ptns2}")
     private String ptnPtns2;
+	@Value("${pattern3.ptns3}")
+    private String ptnPtns3;
+	@Value("${pattern3.ptns4}")
+    private String ptnPtns4;
 	
 public IndexVo indexTarget(String domain, String fileNm, String indexName, IndexVo indexVo, int fileNum, String path, int documentId) throws Exception{
 		
@@ -59,9 +68,9 @@ public IndexVo indexTarget(String domain, String fileNm, String indexName, Index
 		String readLine = null ;
 	    int lineNum = 0;			//라인 넘버
 	    
-	    Pattern tags = Pattern.compile("<(/)?([a-zA-Z]*)(\\s[a-zA-Z]*=[^>]*)?(\\s)*(/)?>");
-	    Pattern ptns1 = Pattern.compile("<IMG src=.*?>(.*?)"); //이미지 패턴
-	    Pattern ptns2 = Pattern.compile("^그림 [1-9.-]{2,8}");
+	    Pattern tags = Pattern.compile(tags0);
+	    Pattern ptns1 = Pattern.compile(ptnPtns3); //이미지 패턴
+	    Pattern ptns2 = Pattern.compile(ptnPtns4);
 	    Pattern ptns3 = Pattern.compile(ptnPtns1);
 	    Pattern ptns4 = Pattern.compile(ptnPtns2);
 	    
@@ -85,7 +94,7 @@ public IndexVo indexTarget(String domain, String fileNm, String indexName, Index
 	        while((readLine =  bufReader.readLine()) != null ){
 	            map = new HashMap<String, String>();
 	            lineNum++;
-	            if("<BODY>".equals(readLine)) {
+	            if(readLine.contains("<P CLASS=HStyle38 STYLE='line-height:150%;'>5.7<SPAN style='HWP-TAB:1;'>")) {
 	            	indexVo.setStartNum(lineNum);
 	            }
 	            	
@@ -109,6 +118,7 @@ public IndexVo indexTarget(String domain, String fileNm, String indexName, Index
            				indexVo.setNumber3("");
            				indexVo.setLevel("1");
            				indexVo.setStartLine(lineNum);
+           				indexVo.setOrderNum(orderNum);
                		}else if(indexVo.getTagStr().matches(title2_pattern1)) {		//2 단계
                			indexVo.setNumber2(indexVo.getTagStr().split(" ")[0]);
                			if("B".equals(indexVo.getNumber2())) {
@@ -117,6 +127,7 @@ public IndexVo indexTarget(String domain, String fileNm, String indexName, Index
            				indexVo.setNumber3("");
             			indexVo.setLevel("2");
             			indexVo.setStartLine(lineNum);
+            			indexVo.setOrderNum(orderNum);
                		}else if(indexVo.getTagStr().matches(title3_pattern1)) {		//3 단계
                			indexVo.setNumber3(indexVo.getTagStr().split(" ")[0]);
                			if("B".equals(indexVo.getNumber3())) {
@@ -124,6 +135,7 @@ public IndexVo indexTarget(String domain, String fileNm, String indexName, Index
                			}
            				indexVo.setLevel("3");
            				indexVo.setStartLine(lineNum);
+           				indexVo.setOrderNum(orderNum);
                		}
 	            	
 	            	m = ptns1.matcher(readLine);
@@ -250,7 +262,7 @@ public IndexVo indexTarget(String domain, String fileNm, String indexName, Index
 						map.put("LEVEL", indexVo.getLevel());
 						map.put("ETC", "");
 						map.put("FILENAME", fileNm);
-						map.put("ORDERNUM", orderNum);
+						map.put("ORDERNUM", indexVo.getOrderNum());
 							
 						resultMap.put(key, map);
 	            	}
@@ -265,10 +277,12 @@ public IndexVo indexTarget(String domain, String fileNm, String indexName, Index
 		TreeMap<String, Map<String, String>> tm = new TreeMap<String, Map<String, String>>(resultMap);
 		Iterator<String> iteratorKey = tm.keySet().iterator(); 
 		List<Document> voList = new ArrayList<Document>();
+		String[] uuid = path.split("/");
 		while (iteratorKey.hasNext()) {
 			String key = iteratorKey.next();
 			Document vo = new Document();
 			if(!"".equals(tm.get(key).get("NUMBER1").trim())) {
+				
 				vo.setContent(tm.get(key).get("CONTENT"));
 				vo.setEtc(tm.get(key).get("ETC"));
 				vo.setPosition(tm.get(key).get("STARTLINE")+"-"+tm.get(key).get("ENDLINE"));
@@ -289,7 +303,7 @@ public IndexVo indexTarget(String domain, String fileNm, String indexName, Index
 			    vo.setIndexgb("target");
 			    vo.setDomain(domain);
 			    vo.setOrderNum(Long.parseLong(tm.get(key).get("ORDERNUM")));
-			    vo.setUuid(path);
+			    vo.setUuid(uuid[uuid.length-1]);
 				vo.setDocumentId(String.valueOf(documentId));	
 				voList.add(vo);
 			}

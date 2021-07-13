@@ -76,13 +76,18 @@ public class HtmIndexing {
 			    in2StdIndexer.addSource("POSITION", data.getPosition(), in2StdIndexer.SOURCE_TYPE_TEXT);
 			    in2StdIndexer.addSource("FILENM", data.getFileNm(), in2StdIndexer.SOURCE_TYPE_TEXT);
 			    in2StdIndexer.addSource("UUID", data.getUuid(), in2StdIndexer.SOURCE_TYPE_TEXT);
-			    in2StdIndexer.addSource("DOCUMENTID", data.getDocumentId(), in2StdIndexer.SOURCE_TYPE_TEXT);
+			    in2StdIndexer.addSource("DOCUMENT_ID", data.getDocumentId(), in2StdIndexer.SOURCE_TYPE_TEXT);
 			    if(tmpInt == 3) {
-			    	in2StdIndexer.addSource("TOKENTITLE", data.getTitle3(), in2StdIndexer.SOURCE_TYPE_TEXT);
+			    	if("Y".equals(data.getMemberGb())) {
+			    		in2StdIndexer.addSource("TOKENTITLE", data.getTitle1(), in2StdIndexer.SOURCE_TYPE_TEXT);	
+			    	}else {
+			    		in2StdIndexer.addSource("TOKENTITLE", "", in2StdIndexer.SOURCE_TYPE_TEXT);
+			    	}
+			    	
 			    }else if(tmpInt == 2){
 			    	in2StdIndexer.addSource("TOKENTITLE", data.getTitle1(), in2StdIndexer.SOURCE_TYPE_TEXT);
 			    }else {
-			    	in2StdIndexer.addSource("TOKENTITLE", data.getTitle4_1(), in2StdIndexer.SOURCE_TYPE_TEXT);	
+			    	in2StdIndexer.addSource("TOKENTITLE", "", in2StdIndexer.SOURCE_TYPE_TEXT);	
 			    }
 			    
 			    in2StdIndexer.addFieldFTR("TITLE", "TITLE", in2StdIndexer.TOKENIZER_KOR_BIGRAM, true, true);
@@ -108,12 +113,13 @@ public class HtmIndexing {
 			    in2StdIndexer.addFieldFTR("TOKENTITLE", "TOKENTITLE", in2StdIndexer.TOKENIZER_TERM, true, true);
 			    in2StdIndexer.addUpdateableField("ORDERNUM", data.getOrderNum());
 			    in2StdIndexer.addFieldFTR("UUID", "UUID", in2StdIndexer.TOKENIZER_TERM, true, true);
-			    in2StdIndexer.addFieldFTR("DOCUMENTID", "DOCUMENTID", in2StdIndexer.TOKENIZER_TERM, true, true);
+			    in2StdIndexer.addFieldFTR("DOCUMENT_ID", "DOCUMENT_ID", in2StdIndexer.TOKENIZER_TERM, true, true);
 			    	
 			    in2StdIndexer.addFieldFTR("INTEGRATION", "DOMAIN/TITLE1/TITLE2/TITLE3/TITLE4/CONTENT", in2StdIndexer.TOKENIZER_KOR_BIGRAM, true, true);
 			    in2StdIndexer.addFieldTMS("TMS", "KOR", "TITLE1/TITLE2/TITLE3", true, 100);
 
 			    flag = in2StdIndexer.addDocument();
+
 			    if(!flag) {
 			    	break;
 			    }

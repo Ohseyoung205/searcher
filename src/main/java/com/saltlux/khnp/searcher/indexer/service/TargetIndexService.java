@@ -54,18 +54,17 @@ public class TargetIndexService {
 	    return searcher;
 	}
 	
-	public void targetIndex(String domain, String fileNm, String indexName) throws Exception{
+	public void targetIndex(String domain, String fileNm, String indexName, String name) throws Exception{
 		//############### 타겟 색인 불러오기 ###################
 		IN2StdSearcher searcher = new IN2StdSearcher();
 		init(searcher, indexName);
 		
-
 		if(StringUtils.isNotBlank(fileNm)){	
 			searcher.setQuery(new IN2ParseQuery("FILENM", fileNm.trim(), IN2StdSearcher.TOKENIZER_KOR_BIGRAM));
 		}else {
 			searcher.setQuery(IN2Query.MatchingAllDocQuery()); //쿼리가 존재하지 않음
 		}
-		searcher.setFilter(new IN2TermsFilter("DOMAIN", domain.split(";"), IN2StdSearcher.SOURCE_TYPE_TEXT));
+		searcher.setFilter(new IN2TermsFilter("DOMAIN", name.split(";"), IN2StdSearcher.SOURCE_TYPE_TEXT));
 		
 		IN2MultiSort multiTargetSort = new IN2MultiSort();
 		multiTargetSort.add(new IN2FieldSort("FILENM", true));
@@ -103,7 +102,7 @@ public class TargetIndexService {
         Map<String, Map<String, String>> facetMap = new LinkedHashMap<String, Map<String, String>>();
         IN2FacetSearcher facetSearcher = new IN2FacetSearcher();
         facetSearcher.setServer(host, port);
-        facetSearcher.setFilter(new IN2TermsFilter("DOMAIN", domain.split(";"), IN2StdSearcher.SOURCE_TYPE_TEXT));
+        facetSearcher.setFilter(new IN2TermsFilter("DOMAIN", name.split(";"), IN2StdSearcher.SOURCE_TYPE_TEXT));
         facetSearcher.newQuery();
         facetSearcher.addIndex(indexName);
 
@@ -152,7 +151,6 @@ public class TargetIndexService {
 			for( Map.Entry<String, Map<String, String>> tEm : targetMap.entrySet() ){
 				if("index".equals(tEm.getValue().get("indexgb"))) {
 					if(!"".equals(tEm.getValue().get("level"))) {
-						
 						if(tEm.getValue().get("position").trim() != null && !"".equals(tEm.getValue().get("position").trim())) {
 							if(!htmlMap.get(tEm.getValue().get("position").split("-")[0]).contains("<div class='hilight")) {
 								htmlMap.put(tEm.getValue().get("position").split("-")[0], "<div class='hilight-"+tEm.getValue().get("position").split("-")[0]+"'>"+htmlMap.get(tEm.getValue().get("position").split("-")[0]));

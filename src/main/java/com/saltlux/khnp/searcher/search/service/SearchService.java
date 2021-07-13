@@ -182,7 +182,7 @@ public class SearchService {
     	searcher.setSort(new IN2FieldSort("ORDERNUM", true, "long"));
         searcher.setReturnPositionCount(0, 10000);
         
-        searcher.addReturnField(new String[]{"TITLE0","TITLE1","TITLE2","TITLE3", "NUMBER0", "NUMBER1","NUMBER2","NUMBER3","POSITION","FILENM","LEVEL", "ORDERNUM"});
+        searcher.addReturnField(new String[]{"TITLE0","TITLE1","TITLE2","TITLE3", "NUMBER0", "NUMBER1","NUMBER2","NUMBER3","POSITION","FILENM","LEVEL", "ORDERNUM", "DOCUMENT_ID", "UUID"});
         
         if(!searcher.searchDocument())	//검색 요청
             throw new RuntimeException(searcher.getLastErrorMessage());
@@ -224,6 +224,7 @@ public class SearchService {
     		map.put("position", searcher.getValueInDocument(i, "POSITION"));
     		map.put("fileNm", searcher.getValueInDocument(i, "FILENM"));
     		map.put("level", searcher.getValueInDocument(i, "LEVEL"));
+    		map.put("uuid", searcher.getValueInDocument(i, "UUID"));
     		
 			if(!"".equals(tmpStr1) && "".equals(tmpStr2) && "".equals(tmpStr3)) {		// 1단계
 				
@@ -261,13 +262,13 @@ public class SearchService {
         			HashMap<String, String> map6 = new HashMap<>();
         			map6.put("vid", "");
         			map6.put("name", "기술문서");
-        			map6.put("pid", "80."+"0");
-        			map6.put("id", "80."+"0");
+        			map6.put("pid", "80.0");
+        			map6.put("id", "80.0");
         			map6.put("order", searcher.getValueInDocument(i, "ORDERNUM"));
         			documents.add(map6);
         			cnt++;
         			HashMap<String, String> map4 = new HashMap<>();
-        			map4.put("vid", "");
+        			map4.put("vid", tmpStr4+"0");
             		map4.put("name", searcher.getValueInDocument(i, "TITLE0"));
             		map4.put("pid", tmpStr4+"0");
             		map4.put("id", tmpStr4+"0");

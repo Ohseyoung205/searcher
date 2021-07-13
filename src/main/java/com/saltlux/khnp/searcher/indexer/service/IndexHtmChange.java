@@ -15,6 +15,7 @@ import java.nio.file.attribute.UserPrincipal;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -37,7 +38,10 @@ public class IndexHtmChange {
 		String pattern1 = "__(.*?)__";
 		String pattern2 = "──(.*?)──";
 		String pattern3 = "󰡈󰡈󰡈(.*?)󰡈󰡈󰡈";
-	
+		String pattern4 = "<IMG src=(.*?).gif";
+		String pattern5 = "<IMG src=(.*?).png";
+		Matcher m;
+		Pattern ptns = Pattern.compile(pattern5);
 		try {
 			for(int i=0;i<fileNm.length; i++) {
 				HashMap<String, String> htmlMap = new LinkedHashMap<>();
@@ -54,12 +58,32 @@ public class IndexHtmChange {
 					if(readLine.contains("font-size:36.0pt;") || readLine.contains("font-size:12.0pt;")) {
 						if(!"font-weight:bold;".contains(readLine)) {
 							readLine = readLine.replaceAll("font-size:36.0pt;", "font-size:36.0pt;font-family:견고딕;font-weight:bold;");
-							readLine = readLine.replaceAll("font-size:12.0pt;", "font-size:36.0pt;font-family:견고딕;font-weight:bold;");
+							readLine = readLine.replaceAll("font-size:12.0pt;", "font-size:12.0pt;font-family:견고딕;font-weight:bold;");
 						}
 					}
 					
 					readLine = readLine.replaceAll("<SPAN STYLE=''>", "<SPAN STYLE='font-family:견고딕;font-weight:bold;'>");
-					readLine = readLine.replaceAll("<IMG src=\".\\\\", "<IMG src=\"/resources/"+domain+"/");
+//					System.out.println("domain ::"+domain);
+					String[] imagePath = domain.split("/");
+					String imagePath1 = "";
+					for(int k=1;k<imagePath.length;k++) {
+						if(k == 1) {
+							imagePath1="/"+imagePath[k];
+						}else {
+							imagePath1=imagePath1+"/"+imagePath[k];
+						}
+						
+					}
+
+					m = ptns.matcher(readLine);
+					while (m.find()) {
+						String img1 = m.group();
+						String[] sImg = img1.split("\\\\");
+						readLine = readLine.replaceAll("<IMG src=(.*?).png", "<IMG src=\".\\\\"+sImg[sImg.length-1]);
+						
+					}
+					
+					readLine = readLine.replaceAll("<IMG src=\".\\\\", "<IMG src=\""+imagePath1+"/");
 					
 					tagsHtm = tags.matcher(readLine).replaceAll("").replaceAll("&nbsp;", "");
 					if(tagsHtm.matches(pattern0)) {

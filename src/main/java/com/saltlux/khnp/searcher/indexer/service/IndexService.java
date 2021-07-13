@@ -52,10 +52,10 @@ public class IndexService {
     private String htmFilePath;
 	
 	
-	public IntegrationSearchResult indexService(String documentId, String path) throws Exception{
+	public HashMap<String, String> indexService(String documentId, String path) throws Exception{
+
 		HashMap<String, String> map = new HashMap<>();
-		List<HashMap<String, String>> documents = new ArrayList<>();
-		
+
 		Optional<PlantOperationDocument> optional = plantRepository.findByDocumentId(Integer.valueOf(documentId));
 		
 		if(!optional.isPresent() || optional.get().getDomainTable() == null){
@@ -67,10 +67,10 @@ public class IndexService {
 		DomainTable domainTable = new DomainTable();
 		String indexDomain = "KHNP_DOCUMENT";
 		indexDomain = indexDomain+optional.get().getDocumentId();
-		
+		String[] uuid = path.split("/");
 		if(doaminList.size() == 0) {
 			domainTable.setDomainId(1);
-			domainTable.setUuid(path);
+			domainTable.setUuid(uuid[uuid.length-1]);
 			domainTable.setRecYn(true);
 			domainTable.setCreateDt(new Date());
 			domainTable.setIndexName(indexDomain+String.format("%05d", 1));
@@ -78,7 +78,7 @@ public class IndexService {
 			
 		}else {
 			domainTable.setDomainId(doaminList.get(0).getDomainId()+1);
-			domainTable.setUuid(path);
+			domainTable.setUuid(uuid[uuid.length-1]);
 			domainTable.setRecYn(true);
 			domainTable.setCreateDt(new Date());
 			domainTable.setIndexName(indexDomain+String.format("%05d", doaminList.get(0).getDomainId()+1));
@@ -124,8 +124,7 @@ public class IndexService {
 					}
 					if(!htmVo.isBln() || !tarVo.isBln()) {
 						htmIndexing.dropIndex(domainTable.getIndexName());
-						documents.add(map);
-						return new IntegrationSearchResult(documents, 0);
+						return map;
 					}else {
 						htmIndexing.dropIndex(optional.get().getDomainTable().getIndexName());
 						PlantOperationDocument documentVo = new PlantOperationDocument();
@@ -139,25 +138,22 @@ public class IndexService {
 					
 					
 					for(int i=0; i<fileNm.length; i++) {
-						targetIndexService.targetIndex(path, fileNm[i], domainTable.getIndexName());
+						targetIndexService.targetIndex(path, fileNm[i], domainTable.getIndexName(), optional.get().getName());
 					}
 					map.put("errorYn", "N");
 					map.put("msg", "색인및 htm 변환을 완료하였습니다.");
-					documents.add(map);
 				}else {
 					map.put("errorYn", "Y");
 					map.put("msg", "htm 변환 중 오류가 발생하였습니다.");
-					documents.add(map);
-					return new IntegrationSearchResult(documents, 0);
+					return map;
 				}
 			}
 		}else {
 			map.put("errorYn", "Y");
 			map.put("msg", "색인 테이블 저장중 오류가 발생하였습니다.");
-			documents.add(map);
 		}
 		
-		return new IntegrationSearchResult(documents, 0);
+		return map;
 	}
 	
 	

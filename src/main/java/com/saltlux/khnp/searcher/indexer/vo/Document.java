@@ -29,4 +29,5 @@ public class Document {
     private long orderNum;
     private String uuid;
     private String documentId;
+    private String memberGb;
 }
