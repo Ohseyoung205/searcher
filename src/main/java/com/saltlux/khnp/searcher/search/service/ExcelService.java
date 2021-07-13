@@ -61,40 +61,20 @@ public class ExcelService {
   }
 
   //용어집 이름이 있을 때
-  public ByteArrayInputStream loadTermsDictByKeyword(String source, String field, String keyword) {
+  public ByteArrayInputStream loadTermsDictByKeyword(String source,String keyword) {
     boolean recYn = true;
-    List<TermsDict> termsDicts;
-    if ("koName".equalsIgnoreCase(field)) {
-      termsDicts = termsDictRepository.findByTermsDivEqualsAndTermsKoNameContainingAndRecYnEquals(source, keyword, recYn);
-    } else if("eaName".equalsIgnoreCase(field)) {
-      termsDicts = termsDictRepository.findByTermsDivEqualsAndTermsEaNameContainingAndRecYnEquals(source,keyword,recYn);
-    } else if("contents".equalsIgnoreCase(field)) {
-      termsDicts = termsDictRepository.findByTermsDivEqualsAndTermsContentsContainingAndRecYnEquals(source, keyword, recYn);
-    } else if("abr".equalsIgnoreCase(field)) {
-      termsDicts = termsDictRepository.findByTermsDivEqualsAndTermsAbrContainingAndRecYnEquals(source, keyword, recYn);
-    } else {
-      termsDicts = termsDictRepository.findByTermsDivExtra(source,keyword, recYn);
-    }
-    ByteArrayInputStream in = ExcelHelper.termsDictToExcel(termsDicts);
+    List<TermsDict> termsDicts = termsDictRepository.findByTermsDivExtra(source, keyword, recYn);
+    ArrayList<String> termsDivs = termsDictRepository.findByTermsDivExtraDistinct(source, keyword, recYn);
+    ByteArrayInputStream in = ExcelHelper.termsDictToExcel(termsDicts, termsDivs);
     return in;
   }
 
   // 용어집이름이 전체(공백)일 때
-  public ByteArrayInputStream loadTermsDictByKeywordNoTermsDiv(String field, String keyword) {
+  public ByteArrayInputStream loadTermsDictByKeywordNoTermsDiv(String keyword) {
     boolean recYn = true;
-    List<TermsDict> termsDicts;
-    if ("koName".equalsIgnoreCase(field)) {
-      termsDicts = termsDictRepository.findByTermsKoNameContainingAndRecYnEquals(keyword, recYn);
-    } else if("eaName".equalsIgnoreCase(field)) {
-      termsDicts = termsDictRepository.findByTermsEaNameContainingAndRecYnEquals(keyword, recYn);
-    } else if("contents".equalsIgnoreCase(field)) {
-      termsDicts = termsDictRepository.findByTermsContentsContainingAndRecYnEquals(keyword, recYn);
-    } else if("abr".equalsIgnoreCase(field)) {
-      termsDicts = termsDictRepository.findByTermsAbrContainingAndRecYnEquals(keyword, recYn);
-    } else {
-      termsDicts = termsDictRepository.findByRecYnEqualsYAndKeyword(recYn, keyword);
-    }
-    ByteArrayInputStream in = ExcelHelper.termsDictToExcel(termsDicts);
+    List<TermsDict> termsDicts = termsDictRepository.findByRecYnEqualsYAndKeyword(recYn, keyword);
+    ArrayList<String> termsDivs = termsDictRepository.findByRecYnEqualsYAndKeywordDistinct(recYn, keyword);
+    ByteArrayInputStream in = ExcelHelper.termsDictToExcel(termsDicts, termsDivs);
     return in;
   }
 

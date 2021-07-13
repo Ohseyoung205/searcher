@@ -64,12 +64,11 @@ public class ExcelController {
   public ResponseEntity<Resource> termsDict(HttpServletRequest request) throws Exception {
     String filename = "term.xlsx";
     String source = request.getParameter("source")==null ? "" : request.getParameter("source");
-    String field = request.getParameter("field")==null ? "" : request.getParameter("field");
     String keyword = request.getParameter("keyword")==null ? "" : request.getParameter("keyword");
 
     InputStreamResource file = source.equals("") ?
-            new InputStreamResource(fileService.loadTermsDictByKeywordNoTermsDiv(field, keyword)) :
-            new InputStreamResource(fileService.loadTermsDictByKeyword(source, field, keyword));
+            new InputStreamResource(fileService.loadTermsDictByKeywordNoTermsDiv(keyword)) :
+            new InputStreamResource(fileService.loadTermsDictByKeyword(source, keyword));
     return ResponseEntity.ok()
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
             .contentType(MediaType.parseMediaType("application/vnd.ms-excel")).body(file);
