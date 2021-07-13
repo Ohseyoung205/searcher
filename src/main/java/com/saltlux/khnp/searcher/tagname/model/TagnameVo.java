@@ -2,12 +2,13 @@ package com.saltlux.khnp.searcher.tagname.model;
 
 import com.saltlux.dor.api.IN2StdSearcher;
 import com.saltlux.khnp.searcher.common.constant.TAGNAME_FIELD;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import java.util.Comparator;
-import java.util.Objects;
 
 @Getter
+@EqualsAndHashCode(exclude = {"cluster"})
 public class TagnameVo implements Comparator<TagnameVo>, Comparable<TagnameVo> {
 
     private String tagid;
@@ -29,7 +30,7 @@ public class TagnameVo implements Comparator<TagnameVo>, Comparable<TagnameVo> {
         plant = tags[0];
         description = e.getDescription();
         unit = e.getUnit();
-        cluster = dbscanCluster();
+        cluster = -1;
     }
 
     public TagnameVo(int i, IN2StdSearcher searcher) {
@@ -46,31 +47,9 @@ public class TagnameVo implements Comparator<TagnameVo>, Comparable<TagnameVo> {
         return this;
     }
 
-    private Integer dbscanCluster() {
-        return -1;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(tagid, tagname, plant, description);
-    }
-
     @Override
     public int compare(TagnameVo o1, TagnameVo o2) {
         return Integer.valueOf(o2.getTagid()) - Integer.valueOf(o1.getTagid());
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof TagnameVo))
-            return false;
-        TagnameVo other = (TagnameVo)o;
-        return Objects.equals(tagid, other.tagid) &&
-                Objects.equals(tagname, other.tagname) &&
-                Objects.equals(plant, other.plant) &&
-                Objects.equals(description, other.description);
     }
 
     @Override

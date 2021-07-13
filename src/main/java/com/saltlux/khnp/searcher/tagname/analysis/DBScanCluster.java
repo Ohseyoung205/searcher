@@ -37,7 +37,7 @@ public class DBScanCluster<T> {
     public void cluster(List<T> points) {
         int progress = 0;
         for (T point : points) {
-            log.info("clustering : {}/{}", ++progress, points.size());
+            log.debug("clustering : {}/{}", ++progress, points.size());
             if (visited.containsKey(point)) continue;
 
             List<T> neighbors = getNeighbors(point, points);

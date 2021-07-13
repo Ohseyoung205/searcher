@@ -17,7 +17,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,10 +48,7 @@ public class TagnameIndexScheduler {
     @Value("${tagname.cluster.minpts}")
     private int minPts;
 
-    @PostConstruct
-    public void init(){}
-
-    @Scheduled(cron = "* * * * * 1")
+    @Scheduled(cron = "${tagname.clustering.schedule.cron:0 10 0 * * *}")
     public void clusterSchedule(){
         List<TagnameVo> list = tagnameRepository
                 .findAll()
@@ -79,9 +75,10 @@ public class TagnameIndexScheduler {
         updater.setKey(TAGNAME_FIELD.TAGID.getFieldName(), vo.getTagid());
         updater.setUpdateData(TAGNAME_FIELD.CLUSTER.getFieldName(), vo.getCluster());
         updater.update();
+        log.debug("update cluster id : id={}, cluster={}", vo.getTagid(), vo.getCluster());
     }
 
-    @Scheduled(cron="* * * * * 1")
+    @Scheduled(cron="${tagname.indexing.schedule.cron:0 0 0 * * *}")
     public void tagnameIndexing(){
         for(TagnameEntity e : tagnameRepository.findAll()){
             TagnameVo vo = new TagnameVo(e);
