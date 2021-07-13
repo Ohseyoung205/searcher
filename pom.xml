@@ -19,6 +19,11 @@
 		<java.version>1.8</java.version>
 		<spring-boot-admin.version>2.3.0</spring-boot-admin.version>
 		<poi.version>3.15</poi.version>
+		<evosuiteVersion>1.0.3</evosuiteVersion>
+		<devserver.host>192.168.219.2</devserver.host>
+		<devserver.username>saltlux</devserver.username>
+		<devserver.password>saltlux123!</devserver.password>
+		<devserver.path>/opt/saltlux/khnp_searcher</devserver.path>
 	</properties>
 
 	<dependencies>
@@ -173,7 +178,72 @@
 					</execution>
 				</executions>
 			</plugin>
+			<!-- command: mvn clean package -Pdev; mvn antrun:run@deploy -Pdev -->
+			<!-- http://devserver:8081/ -->
+			<plugin>
+				<inherited>false</inherited>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.8</version>
+				<executions>
+					<execution>
+						<id>deploy</id>
+						<phase>install</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target name="scp-deploy" description="Use antrun plugin to deploy with SCP and SSH">
+								<!-- remote host and the command to be executed there -->
+
+								<!--<echo message="Stopping deployed app ..." />
+								<sshexec trust="true" failonerror="true"
+										 host="${devserver.host}"
+										 username="${devserver.username}"
+										 password="${devserver.password}"
+										 command="khnp_searcher.sh stop"
+										 timeout="120000" />-->
+
+								<!-- file to be transferred -->
+								<echo message="Transfering ${project.build.directory}/${project.build.finalName}.${project.packaging} ..." />
+								<echo message="to ${devserver.path}/${project.artifactId}.${project.packaging}" />
+								<scp trust="true" failonerror="true" verbose="off" sftp="true"
+									 file="${project.build.directory}/${project.build.finalName}.${project.packaging}"
+									 todir="${devserver.username}:${devserver.password}@${devserver.host}:${devserver.path}/${project.artifactId}.${project.packaging}" />
+
+								<!-- remote host and the command to be executed there -->
+								<!--<echo message="Starting htct app ..." />
+								<sshexec trust="true" failonerror="true"
+										 host="${devserver.host}"
+										 username="${devserver.username}"
+										 password="${devserver.password}"
+										 command="khnp_searcher.sh start"
+										 timeout="120000" />-->
+								<echo message="The deployment is done." />
+
+								<taskdef name="scp" classname="org.apache.tools.ant.taskdefs.optional.ssh.Scp">
+									<classpath refid="maven.plugin.classpath" />
+								</taskdef>
+								<taskdef name="scp" classname="org.apache.tools.ant.taskdefs.optional.ssh.SSHExec">
+									<classpath refid="maven.plugin.classpath" />
+								</taskdef>
+							</target>
+						</configuration>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>ant</groupId>
+						<artifactId>ant-commons-net</artifactId>
+						<version>1.6.5</version>
+					</dependency>
+					<dependency>
+						<groupId>org.apache.ant</groupId>
+						<artifactId>ant-jsch</artifactId>
+						<version>1.10.5</version>
+					</dependency>
+				</dependencies>
+			</plugin>
 		</plugins>
 	</build>
-
 </project>

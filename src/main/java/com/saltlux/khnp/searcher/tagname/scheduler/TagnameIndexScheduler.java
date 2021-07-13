@@ -117,6 +117,7 @@ public class TagnameIndexScheduler {
         addField(TAGNAME_FIELD.TAGNAME, vo.getTagname(), indexer);
         addField(TAGNAME_FIELD.DESCRIPTION, vo.getDescription(), indexer);
         addField(TAGNAME_FIELD.PLANT, vo.getPlant(), indexer);
+        addField(TAGNAME_FIELD.UNIT, vo.getUnit(), indexer);
         indexer.addFieldFTR(TAGNAME_FIELD.INTEGRATION.name(), TAGNAME_FIELD.INTEGRATION.getFieldName(), TAGNAME_FIELD.INTEGRATION.getAnalyzer(), TAGNAME_FIELD.INTEGRATION.isIndexed(), TAGNAME_FIELD.INTEGRATION.isStored());
 
         indexer.addUpdateableField(TAGNAME_FIELD.CLUSTER.getFieldName(), vo.getCluster());
