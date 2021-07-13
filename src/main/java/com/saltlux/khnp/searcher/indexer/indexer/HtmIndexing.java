@@ -47,14 +47,9 @@ public class HtmIndexing {
 		       
 		    while (itr.hasNext()) {
 		    	Document data = itr.next();
-		         	
+	         	
 		    	in2StdIndexer.newDocument();
 		        in2StdIndexer.setIndex(indexName);
-
-//			        if(data.getContent().getBytes().length > 32000) {
-//			        	System.out.println("========초");
-//			        	data.setContent("======================");
-//			        }
 
 				String title = Stream.of(data.getTitle0(), data.getTitle1(), data.getTitle2(), data.getTitle3(), data.getTitle4(), data.getTitle4_1())
 						.filter(s -> StringUtils.isNotEmpty(s))
@@ -80,14 +75,16 @@ public class HtmIndexing {
 			    in2StdIndexer.addSource("LEVEL", data.getLevel(), in2StdIndexer.SOURCE_TYPE_TEXT);
 			    in2StdIndexer.addSource("POSITION", data.getPosition(), in2StdIndexer.SOURCE_TYPE_TEXT);
 			    in2StdIndexer.addSource("FILENM", data.getFileNm(), in2StdIndexer.SOURCE_TYPE_TEXT);
+			    in2StdIndexer.addSource("UUID", data.getUuid(), in2StdIndexer.SOURCE_TYPE_TEXT);
+			    in2StdIndexer.addSource("DOCUMENTID", data.getDocumentId(), in2StdIndexer.SOURCE_TYPE_TEXT);
 			    if(tmpInt == 3) {
 			    	in2StdIndexer.addSource("TOKENTITLE", data.getTitle3(), in2StdIndexer.SOURCE_TYPE_TEXT);
+			    }else if(tmpInt == 2){
+			    	in2StdIndexer.addSource("TOKENTITLE", data.getTitle1(), in2StdIndexer.SOURCE_TYPE_TEXT);
 			    }else {
-			    	in2StdIndexer.addSource("TOKENTITLE", data.getTitle1(), in2StdIndexer.SOURCE_TYPE_TEXT);	
+			    	in2StdIndexer.addSource("TOKENTITLE", data.getTitle4_1(), in2StdIndexer.SOURCE_TYPE_TEXT);	
 			    }
 			    
-			        
-			    	
 			    in2StdIndexer.addFieldFTR("TITLE", "TITLE", in2StdIndexer.TOKENIZER_KOR_BIGRAM, true, true);
 			    in2StdIndexer.addFieldFTR("NUMBER", "NUMBER", in2StdIndexer.TOKENIZER_TERM, true, true);
 			    in2StdIndexer.addFieldFTR("TITLE0", "TITLE0", in2StdIndexer.TOKENIZER_KOR_BIGRAM, true, true);
@@ -109,22 +106,19 @@ public class HtmIndexing {
 			    in2StdIndexer.addFieldFTR("POSITION", "POSITION", in2StdIndexer.TOKENIZER_TERM, true, true);
 			    in2StdIndexer.addFieldFTR("FILENM", "FILENM", in2StdIndexer.TOKENIZER_KOR_BIGRAM, true, true);
 			    in2StdIndexer.addFieldFTR("TOKENTITLE", "TOKENTITLE", in2StdIndexer.TOKENIZER_TERM, true, true);
+			    in2StdIndexer.addUpdateableField("ORDERNUM", data.getOrderNum());
+			    in2StdIndexer.addFieldFTR("UUID", "UUID", in2StdIndexer.TOKENIZER_TERM, true, true);
+			    in2StdIndexer.addFieldFTR("DOCUMENTID", "DOCUMENTID", in2StdIndexer.TOKENIZER_TERM, true, true);
 			    	
 			    in2StdIndexer.addFieldFTR("INTEGRATION", "DOMAIN/TITLE1/TITLE2/TITLE3/TITLE4/CONTENT", in2StdIndexer.TOKENIZER_KOR_BIGRAM, true, true);
 			    in2StdIndexer.addFieldTMS("TMS", "KOR", "TITLE1/TITLE2/TITLE3", true, 100);
 
 			    flag = in2StdIndexer.addDocument();
+			    if(!flag) {
+			    	break;
+			    }
 		    }
 		        
-		    try {
-		        if (flag == false)
-		            log.info("TERMS IDX FAIL : " + in2StdIndexer.getLastErrorMessage());
-
-		        return flag;
-
-		    } catch (Exception e) {
-		        log.error("TERMS IDX EXCEPTION FAIL : " + e.getMessage());
-		        return false;
-		    }
+		    return flag;
 		}
 }

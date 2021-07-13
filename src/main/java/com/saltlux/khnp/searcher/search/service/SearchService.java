@@ -65,6 +65,7 @@ public class SearchService {
                         });
 			}
 		}
+
         if (domainIndexList.size() <= 0){
             plantOperationDocumentRepository.findByDomainTableNotNull()
                     .stream()
@@ -215,9 +216,9 @@ public class SearchService {
     		}else if("1".equals(tmpLev) && "제 3편".equals(number0) && "1.0".equals(tmpStr1)) {
     			tmpStr4 = "3.";
     		}else if("1".equals(tmpLev) && "제 1편".equals(number0) && "B 2.0".equals(tmpStr1)){
-    			tmpStr4 = "8.";
+    			tmpStr4 = "81.";
     		}else if("1".equals(tmpLev) && "제 1편".equals(number0) && "B 3.0".equals(tmpStr1)){
-    			tmpStr4 = "9.";
+    			tmpStr4 = "82.";
     		}
     		
     		map.put("position", searcher.getValueInDocument(i, "POSITION"));
@@ -232,7 +233,7 @@ public class SearchService {
             		map1.put("name", searcher.getValueInDocument(i, "TITLE0"));
             		map1.put("pid", tmpStr4+"0");
             		map1.put("id", tmpStr4+"0");
-            		map1.put("order", "");
+            		map1.put("order", searcher.getValueInDocument(i, "ORDERNUM"));
             		gb1 = 1;
             		documents.add(map1);
         			cnt++;
@@ -242,7 +243,7 @@ public class SearchService {
             		map2.put("name", searcher.getValueInDocument(i, "TITLE0"));
             		map2.put("pid", tmpStr4+"0");
             		map2.put("id", tmpStr4+"0");
-            		map2.put("order", "");
+            		map2.put("order", searcher.getValueInDocument(i, "ORDERNUM"));
             		gb2 = 1;
             		documents.add(map2);
         			cnt++;
@@ -252,29 +253,37 @@ public class SearchService {
             		map3.put("name", searcher.getValueInDocument(i, "TITLE0"));
             		map3.put("pid", tmpStr4+"0");
             		map3.put("id", tmpStr4+"0");
-            		map3.put("order", "");
+            		map3.put("order", searcher.getValueInDocument(i, "ORDERNUM"));
             		gb3 = 1;
             		documents.add(map3);
         			cnt++;
         		}else if("1".equals(tmpLev) && "제 1편".equals(number0) && "B 2.0".equals(tmpStr1) && gb4 == 0) {
+        			HashMap<String, String> map6 = new HashMap<>();
+        			map6.put("vid", "");
+        			map6.put("name", "기술문서");
+        			map6.put("pid", "80."+"0");
+        			map6.put("id", "80."+"0");
+        			map6.put("order", searcher.getValueInDocument(i, "ORDERNUM"));
+        			documents.add(map6);
+        			cnt++;
         			HashMap<String, String> map4 = new HashMap<>();
         			map4.put("vid", "");
             		map4.put("name", searcher.getValueInDocument(i, "TITLE0"));
             		map4.put("pid", tmpStr4+"0");
             		map4.put("id", tmpStr4+"0");
-            		map4.put("order", "");
+            		map4.put("order", searcher.getValueInDocument(i, "ORDERNUM"));
             		gb4 = 1;
             		documents.add(map4);
         			cnt++;
         		}else if("1".equals(tmpLev) && "제 1편".equals(number0) && "B 3.0".equals(tmpStr1) && gb5 == 0) {
-        			HashMap<String, String> map4 = new HashMap<>();
-        			map4.put("vid", "");
-            		map4.put("name", searcher.getValueInDocument(i, "TITLE0"));
-            		map4.put("pid", tmpStr4+"0");
-            		map4.put("id", tmpStr4+"0");
-            		map4.put("order", "");
+        			HashMap<String, String> map5 = new HashMap<>();
+        			map5.put("vid", "");
+        			map5.put("name", searcher.getValueInDocument(i, "TITLE0"));
+        			map5.put("pid", tmpStr4+"0");
+        			map5.put("id", tmpStr4+"0");
+        			map5.put("order", searcher.getValueInDocument(i, "ORDERNUM"));
             		gb5 = 1;
-            		documents.add(map4);
+            		documents.add(map5);
         			cnt++;
         		}
 				map.put("vid", tmpStr1);
@@ -295,10 +304,35 @@ public class SearchService {
         		map.put("id", tmpStr4+tmpStr3);
         		map.put("order", searcher.getValueInDocument(i, "ORDERNUM"));
         	}
-        	
+			
         	if(i > 0) {
         		if(!map.get("name").toString().equals(searcher.getValueInDocument(i-1, "TITLE"+map.get("level").toString()))) {
-        			
+        			String[] sVid = map.get("vid").split("\\.");
+        			String[] bVid = documents.get(cnt-1).get("vid").split("\\.");
+        			if(sVid.length > bVid.length) {
+        				if(!"0".equals(sVid[bVid.length])) {
+        					if(!sVid[sVid.length-2].equals(bVid[bVid.length-1])) {
+//        						System.out.println("sVid[0] ::"+sVid[sVid.length-2]+"|| bVid[0] ::"+bVid[bVid.length-1]+" || length::"+bVid.length+"|| sVid.length::"+sVid.length);
+        						String tmpVid = "";
+        						for(int k = 0;k <sVid.length-1;k++) {
+        							if(k == 0) {
+        								tmpVid = sVid[k];
+        							}else {
+        								tmpVid =tmpVid+"."+sVid[k];
+        							}
+        						}
+        						HashMap<String, String> map7 = new HashMap<>();
+        						map7.put("vid", tmpVid);
+        						map7.put("name", "");
+        						map7.put("pid", tmpStr4+tmpStr2);
+        						map7.put("id", tmpStr4+tmpVid);
+        						map7.put("order", "");
+        		        		documents.add(map7);
+        		        		cnt++;
+        					}
+        					
+        				}
+        			}
         			documents.add(map);
         			cnt++;
         		}
@@ -306,6 +340,8 @@ public class SearchService {
         		documents.add(map);
         		cnt++;
         	}
+        	
+        	
         }
         log.info("query : {} , return count: {}",  searcher.getDocumentCount());
     	return new IntegrationSearchResult(documents, cnt);

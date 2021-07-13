@@ -47,7 +47,7 @@ public class IndexTarget {
 	@Value("${pattern3.ptns2}")
     private String ptnPtns2;
 	
-public IndexVo indexTarget(String domain, String fileNm, String indexName, IndexVo indexVo, int fileNum, String path) throws Exception{
+public IndexVo indexTarget(String domain, String fileNm, String indexName, IndexVo indexVo, int fileNum, String path, int documentId) throws Exception{
 		
 		String title1_pattern1 = ptnTitle1+Consts.TWOSPACE+".*"; // 1.0, 2.0 ,3.0 구분
 		String title2_pattern1 = ptnTitle2+Consts.TWOSPACE+".*"; // 1.1, 1.2, 1.3 ...2.1
@@ -289,7 +289,8 @@ public IndexVo indexTarget(String domain, String fileNm, String indexName, Index
 			    vo.setIndexgb("target");
 			    vo.setDomain(domain);
 			    vo.setOrderNum(Long.parseLong(tm.get(key).get("ORDERNUM")));
-					
+			    vo.setUuid(path);
+				vo.setDocumentId(String.valueOf(documentId));	
 				voList.add(vo);
 			}
 			
