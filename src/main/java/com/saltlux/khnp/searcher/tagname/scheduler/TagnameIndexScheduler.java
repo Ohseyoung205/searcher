@@ -48,7 +48,7 @@ public class TagnameIndexScheduler {
     @Value("${tagname.cluster.minpts}")
     private int minPts;
 
-    @Scheduled(cron = "${tagname.clustering.schedule.cron:0 10 0 * * *}")
+    @Scheduled(cron = "${tagname.clustering.schedule.cron:0 0 1 * * *}")
     public void clusterSchedule(){
         List<TagnameVo> list = tagnameRepository
                 .findAll()

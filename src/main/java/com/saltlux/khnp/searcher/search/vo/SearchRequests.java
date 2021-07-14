@@ -1,5 +1,6 @@
 package com.saltlux.khnp.searcher.search.vo;
 
+import com.saltlux.khnp.searcher.search.helper.SpecialCharacterUtils;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -52,6 +53,10 @@ public class SearchRequests {
         private String returnField;
         private int returnLength;
         private boolean hilight;
+    }
+
+    public String getQuery(){
+        return SpecialCharacterUtils.replaceSpecialChar(query);
     }
 }
 

@@ -12,7 +12,7 @@ public enum INDEX_FIELD {
     // 제목 ex) 운전제한조건 및 점검요구사항 적용|||반응도제어계통|||반응도평형
     TITLE("TITLE", "KOR_BIGRAM", true, true),
     // 내용
-    CONTENTS("CONTENTS", "KOR_BIGRAM", true, true),
+    CONTENT("CONTENT", "KOR_BIGRAM", true, true),
 	
 	YYYYMMDD("YYYYMMDD", "TERM", true, true),
 	

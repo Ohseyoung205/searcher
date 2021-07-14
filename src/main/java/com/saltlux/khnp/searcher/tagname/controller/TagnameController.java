@@ -2,6 +2,7 @@ package com.saltlux.khnp.searcher.tagname.controller;
 
 
 import com.saltlux.khnp.searcher.common.CommonResponseVo;
+import com.saltlux.khnp.searcher.search.helper.SpecialCharacterUtils;
 import com.saltlux.khnp.searcher.tagname.service.TagnameService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,7 @@ public class TagnameController {
     public CommonResponseVo searchByTalkbot(
             @RequestParam(value = "plant", defaultValue = "")String plant,
             @RequestParam(value = "query", defaultValue = "")String query) {
+        query = SpecialCharacterUtils.replaceSpecialChar(query);
         return new CommonResponseVo(tagnameService.searchByTalkbot(plant, query));
     }
 
@@ -26,6 +28,7 @@ public class TagnameController {
                                    @RequestParam(value = "plant", defaultValue = "")String plant,
                                    @RequestParam(value = "offset", defaultValue = "0")int offset,
                                    @RequestParam(value = "limit", defaultValue = "10")int limit) throws Exception{
+        query = SpecialCharacterUtils.replaceSpecialChar(query);
         return new CommonResponseVo(tagnameService.search(plant, query, offset, limit));
     }
 

@@ -11,11 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import javax.annotation.PostConstruct;
-import javax.net.ssl.*;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,43 +27,8 @@ public class DeepQAService {
     @Value("${deepqa.wrapper.tag}")
     private String[] tag;
 
-    @PostConstruct
-    // ssl security Exception 방지
-    private static void disableSslVerification() {
-        try
-        {
-            // Create a trust manager that does not validate certificate chains
-            TrustManager[] trustAllCerts = new TrustManager[] {new X509TrustManager() {
-                public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                    return null;
-                }
-                public void checkClientTrusted(X509Certificate[] certs, String authType) {
-                }
-                public void checkServerTrusted(X509Certificate[] certs, String authType) {
-                }
-            }
-            };
-
-            // Install the all-trusting trust manager
-            SSLContext sc = SSLContext.getInstance("SSL");
-            sc.init(null, trustAllCerts, new java.security.SecureRandom());
-            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-
-            // Create all-trusting host name verifier
-            HostnameVerifier allHostsValid = new HostnameVerifier() {
-                public boolean verify(String hostname, SSLSession session) {
-                    return true;
-                }
-            };
-
-            // Install the all-trusting host verifier
-            HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (KeyManagementException e) {
-            e.printStackTrace();
-        }
-    }
+    @Autowired
+    private RestTemplate restTemplate;
 
     public DeepQAResult deepQA(DeepQARequest request){
         DeepQAHtmlWrapper wrapper = new DeepQAHtmlWrapper(Jsoup.parse(request.getContext()), analyzer);
@@ -79,7 +39,7 @@ public class DeepQAService {
         parameters.put("question", questionParam);
         parameters.put("context", contextParam);
 
-        ResponseEntity<DeepQAResult> res = new RestTemplate().postForEntity(deepQAUri, parameters, DeepQAResult.class);
+        ResponseEntity<DeepQAResult> res = restTemplate.postForEntity(deepQAUri, parameters, DeepQAResult.class);
         if(!res.getStatusCode().is2xxSuccessful()){
             throw new RuntimeException(res.getStatusCode().getReasonPhrase());
         }

@@ -8,6 +8,7 @@ import com.saltlux.khnp.searcher.common.CommonResponseVo;
 import com.saltlux.khnp.searcher.common.libttsapi;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.*;
@@ -29,6 +30,9 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class BrokerService {
+    
+    @Autowired
+    RestTemplate restTemplate;
 
     @Value("${stt.access.uri}")
     private String accessUri;
@@ -66,7 +70,7 @@ public class BrokerService {
                 .queryParam("upwd", userPassword)
                 .build(false);
 
-        ResponseEntity<STTAccessTokenResponse> response = new RestTemplate().exchange(
+        ResponseEntity<STTAccessTokenResponse> response = restTemplate.exchange(
                 builder.toUriString(),
                 HttpMethod.GET,
                 new HttpEntity<String>(headers),
@@ -95,7 +99,7 @@ public class BrokerService {
                 .queryParam("cache", "false")
                 .build(false);
 
-        ResponseEntity<CommonResponseVo> response = new RestTemplate().exchange(
+        ResponseEntity<CommonResponseVo> response = restTemplate.exchange(
                 builder.toUriString(),
                 HttpMethod.GET,
                 new HttpEntity<>(null, null),
@@ -128,7 +132,7 @@ public class BrokerService {
         multipart.add("upload_file", new MultipartInputStreamFileResource(new ByteArrayInputStream(base64)));
 
         HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity(multipart, headers);
-        ResponseEntity<STTResponse> response = new RestTemplate().exchange(sttUri, HttpMethod.POST, requestEntity, STTResponse.class);
+        ResponseEntity<STTResponse> response = restTemplate.exchange(sttUri, HttpMethod.POST, requestEntity, STTResponse.class);
         STTResponse result = response.getBody();
         if(!result.isResult())
             throw new RuntimeException(result.getErrMsg());

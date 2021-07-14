@@ -85,8 +85,8 @@ public class SearchService {
 					bQuery.add(new IN2PrefixQuery(NUMBER.fieldName, query), IN2Query.OR);
 				}else if("title".equals(strFld)) {
 					bQuery.add(new IN2ParseQuery(TITLE.fieldName, String.format("(%s)^%f", query, titleWeight), TITLE.analyzer), IN2Query.OR);
-				}else if("contents".equals(strFld)) {
-					bQuery.add(new IN2ParseQuery(CONTENTS.fieldName, query, CONTENTS.analyzer), IN2Query.OR);
+				}else if("content".equals(strFld)) {
+					bQuery.add(new IN2ParseQuery(CONTENT.fieldName, query, CONTENT.analyzer), IN2Query.OR);
 				}
 			}
 			searcher.setQuery(bQuery);
@@ -171,11 +171,11 @@ public class SearchService {
     	if(StringUtils.isNotBlank(query)){
     		IN2BooleanQuery bQuery = new IN2BooleanQuery();
     		bQuery.add(new IN2PrefixQuery(NUMBER.fieldName, query), IN2Query.OR);
-    		bQuery.add(new IN2ParseQuery(INDEXGB.fieldName, "index", CONTENTS.analyzer), IN2Query.AND);
+    		bQuery.add(new IN2ParseQuery(INDEXGB.fieldName, "index", CONTENT.analyzer), IN2Query.AND);
     		searcher.setQuery(bQuery);
     	}else {
     		IN2BooleanQuery bQuery = new IN2BooleanQuery();
-    		bQuery.add(new IN2ParseQuery(INDEXGB.fieldName, "index", CONTENTS.analyzer), IN2Query.AND);
+    		bQuery.add(new IN2ParseQuery(INDEXGB.fieldName, "index", CONTENT.analyzer), IN2Query.AND);
     		
     		searcher.setQuery(bQuery);
     	}
@@ -369,38 +369,4 @@ public class SearchService {
     	return new IntegrationSearchResult(documents, cnt);
     }
     
-//    public IntegrationSearchResult targetSearch(){
-//    	IN2StdSearcher searcher = new IN2StdSearcher();
-//    	init(searcher, "target");
-//    	
-//    	searcher.setQuery(IN2Query.MatchingAllDocQuery()); //쿼리가 존재하지 않음
-//    	
-//    	IN2MultiSort multiSort = new IN2MultiSort();
-//    	multiSort.add(new IN2FieldSort("FILENM", true));
-//    	multiSort.add(new IN2FieldSort("SORT", true));
-//    	
-//    	searcher.setSort(multiSort);    	
-//        searcher.setReturnPositionCount(0, 10000);
-//        
-//        searcher.addReturnField(new String[]{"TITLE1","POSITION","FILENM"});
-//        
-//        if(!searcher.searchDocument())	//검색 요청
-//            throw new RuntimeException(searcher.getLastErrorMessage());
-//    	
-//        List<HashMap<String, String>> documents = new ArrayList<>();
-//    	int cnt = 0;
-//        for (int i = 0; i < searcher.getDocumentCount(); i++) {
-//        	HashMap<String, String> map = new HashMap<>();
-//        	
-//        	map.put("position", searcher.getValueInDocument(i, "POSITION"));
-//    		map.put("fileNm", searcher.getValueInDocument(i, "FILENM"));
-//    		map.put("title", searcher.getValueInDocument(i, "TITLE1"));
-//        	
-//        	
-//    		documents.add(map);
-//    		cnt++;
-//        }
-//        log.info("query : {} , return count: {}",  searcher.getDocumentCount());
-//    	return new IntegrationSearchResult(documents, cnt);
-//    }
 }
