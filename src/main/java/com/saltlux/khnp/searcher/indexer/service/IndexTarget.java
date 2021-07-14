@@ -56,6 +56,9 @@ public class IndexTarget {
 	@Value("${pattern3.ptns4}")
     private String ptnPtns4;
 	
+	@Value("${pattern4.ptns1}")
+	private String ptnPtns5;
+	
 public IndexVo indexTarget(String domain, String fileNm, String indexName, IndexVo indexVo, int fileNum, String path, int documentId) throws Exception{
 		
 		String title1_pattern1 = ptnTitle1+Consts.TWOSPACE+".*"; // 1.0, 2.0 ,3.0 구분
@@ -73,10 +76,10 @@ public IndexVo indexTarget(String domain, String fileNm, String indexName, Index
 	    Pattern ptns2 = Pattern.compile(ptnPtns4);
 	    Pattern ptns3 = Pattern.compile(ptnPtns1);
 	    Pattern ptns4 = Pattern.compile(ptnPtns2);
+	    Pattern ptns5 = Pattern.compile(ptnPtns5); //색인 시작시점 찾는 패턴
 	    
 	    Matcher m;
 		boolean saveBln = false;
-		int numberChk = 0;
 		String orderNum = "";
 		
 		indexVo.setStartLine(0);
@@ -94,10 +97,12 @@ public IndexVo indexTarget(String domain, String fileNm, String indexName, Index
 	        while((readLine =  bufReader.readLine()) != null ){
 	            map = new HashMap<String, String>();
 	            lineNum++;
-	            if(readLine.contains("<P CLASS=HStyle38 STYLE='line-height:150%;'>5.7<SPAN style='HWP-TAB:1;'>")) {
+	
+	            m = ptns5.matcher(readLine);
+	            while (m.find()) {
 	            	indexVo.setStartNum(lineNum);
 	            }
-	            	
+
 	            orderNum= fileNum+String.format("%06d", lineNum);
 	            if(indexVo.getStartNum() > 0) {
 	            	
@@ -105,9 +110,7 @@ public IndexVo indexTarget(String domain, String fileNm, String indexName, Index
 	            	//######## 이미지 #############
 	            	m = tags.matcher(readLine); //태그삭제
 	            	indexVo.setTmpStr(m.replaceAll(""));
-	            	
-	            	indexVo.setTagStr(m.replaceAll("").replaceAll("&nbsp;", " ").replaceAll("&#9552;", ""));
-	            	
+	            	indexVo.setTagStr(m.replaceAll("").replace("&nbsp;", " ").replace("&#9552;", ""));
 	          
 	            	if(indexVo.getTagStr().matches(title1_pattern1)) {			//1 단계
 	            		indexVo.setNumber1(indexVo.getTagStr().split(" ")[0]);
@@ -147,7 +150,7 @@ public IndexVo indexTarget(String domain, String fileNm, String indexName, Index
 	            		m = ptns2.matcher(indexVo.getTmpStr());
 		            	while (m.find()){
 		            		indexVo.setTmpStr1(m.group(0));
-		            		indexVo.setTmpStr(indexVo.getTmpStr().replaceAll("&nbsp;", ""));
+		            		indexVo.setTmpStr(indexVo.getTmpStr().replace("&nbsp;", ""));
 		            		if(indexVo.getTmpStr().contains(indexVo.getTmpStr1())) {
 		            			indexVo.setImgChk("");
 		            			saveBln = true;
@@ -159,8 +162,8 @@ public IndexVo indexTarget(String domain, String fileNm, String indexName, Index
 	            	//##########  표, 운전제한조건 ###############
 	            	m = ptns3.matcher(indexVo.getTmpStr());
 	            	while (m.find()) {
-	            		indexVo.setTmpStr1(m.group(0));
-	            		indexVo.setTmpStr(indexVo.getTmpStr().replaceAll("&nbsp;", ""));
+	            		indexVo.setTmpStr1(m.group(0).replace("&nbsp;", ""));
+	            		indexVo.setTmpStr(indexVo.getTmpStr().replace("&nbsp;", ""));
 	            		if(indexVo.getTmpStr().contains(indexVo.getTmpStr1())) {
 	            			saveBln = true;
 		            		indexVo.setTitle1(indexVo.getTmpStr1());
@@ -209,8 +212,6 @@ public IndexVo indexTarget(String domain, String fileNm, String indexName, Index
         				indexVo.setBigTitleGb("1");
         			}      
 	            	
-	            	
-	            	
 	            	if("".equals(indexVo.getNumber1())) {
         				if(!"".equals(indexVo.getNumber2())) {
         					indexVo.setNumber1(indexVo.getNumber2().substring(0, indexVo.getNumber2().length()-1)+"0");
@@ -218,7 +219,6 @@ public IndexVo indexTarget(String domain, String fileNm, String indexName, Index
         			}
 
 	            	if(saveBln) {
-	            		numberChk++;
 	            		String key = "";
 		            	if("1".equals(indexVo.getBigTitleGb())) {
 	        				key = "KEY_"+Consts.BIG_TITLE1+indexVo.getTitle1()+indexVo.getStartLine();
@@ -228,7 +228,6 @@ public IndexVo indexTarget(String domain, String fileNm, String indexName, Index
 	       					key = "KEY_"+Consts.BIG_TITLE2+indexVo.getTitle1()+indexVo.getStartLine();
 	       				}
 		            	
-	            		
 	            		if("1".equals(indexVo.getBigTitleGb())) {
        						map.put("TITLE0", Consts.BIG_TITLE1);
        					}else if("2".equals(indexVo.getBigTitleGb())) {
@@ -307,7 +306,6 @@ public IndexVo indexTarget(String domain, String fileNm, String indexName, Index
 				vo.setDocumentId(String.valueOf(documentId));	
 				voList.add(vo);
 			}
-			
 		}
 		
 		if(voList.size() > 0) {

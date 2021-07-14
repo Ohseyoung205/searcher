@@ -126,7 +126,9 @@ public class IndexService {
 						htmIndexing.dropIndex(domainTable.getIndexName());
 						return map;
 					}else {
-						htmIndexing.dropIndex(optional.get().getDomainTable().getIndexName());
+						if(optional.get().getDomainTable() != null) {
+							htmIndexing.dropIndex(optional.get().getDomainTable().getIndexName());
+						}
 						PlantOperationDocument documentVo = new PlantOperationDocument();
 						documentVo = optional.get();
 						documentVo.setDomainTable(domainTable);

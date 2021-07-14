@@ -38,8 +38,10 @@ public class IndexHtmChange {
 		String pattern1 = "__(.*?)__";
 		String pattern2 = "──(.*?)──";
 		String pattern3 = "󰡈󰡈󰡈(.*?)󰡈󰡈󰡈";
-		String pattern4 = "<IMG src=(.*?).gif";
+		String pattern4 = "\\\\?󰠧󰠧(.*?)?󰠧󰠧";
 		String pattern5 = "<IMG src=(.*?).png";
+		String pattern6 = "\\\\?󰠏󰠏(.*?)?󰠏󰠏";
+		String pattern7 = "󰠏󰠏󰠏󰠏󰠏󰠏󰠏󰠏(.*?)";
 		Matcher m;
 		Pattern ptns = Pattern.compile(pattern5);
 		try {
@@ -54,6 +56,7 @@ public class IndexHtmChange {
 				String tagsHtm = "";
 				while((readLine =  bufReader.readLine()) != null ){
 					lineNum++;
+					
 					readLine = readLine.replaceAll("font-family:(.*?);", "");
 					if(readLine.contains("font-size:36.0pt;") || readLine.contains("font-size:12.0pt;")) {
 						if(!"font-weight:bold;".contains(readLine)) {
@@ -61,9 +64,8 @@ public class IndexHtmChange {
 							readLine = readLine.replaceAll("font-size:12.0pt;", "font-size:12.0pt;font-family:견고딕;font-weight:bold;");
 						}
 					}
-					
+				
 					readLine = readLine.replaceAll("<SPAN STYLE=''>", "<SPAN STYLE='font-family:견고딕;font-weight:bold;'>");
-//					System.out.println("domain ::"+domain);
 					String[] imagePath = domain.split("/");
 					String imagePath1 = "";
 					for(int k=1;k<imagePath.length;k++) {
@@ -74,7 +76,7 @@ public class IndexHtmChange {
 						}
 						
 					}
-
+				
 					m = ptns.matcher(readLine);
 					while (m.find()) {
 						String img1 = m.group();
@@ -82,19 +84,26 @@ public class IndexHtmChange {
 						readLine = readLine.replaceAll("<IMG src=(.*?).png", "<IMG src=\".\\\\"+sImg[sImg.length-1]);
 						
 					}
-					
+				
 					readLine = readLine.replaceAll("<IMG src=\".\\\\", "<IMG src=\""+imagePath1+"/");
 					
 					tagsHtm = tags.matcher(readLine).replaceAll("").replaceAll("&nbsp;", "");
 					if(tagsHtm.matches(pattern0)) {
-						readLine = readLine.replaceAll(tagsHtm, "<hr>");
+						readLine = readLine.replace(tagsHtm, "<hr>");
 					}else if(tagsHtm.matches(pattern1)) {
-						readLine = readLine.replaceAll(tagsHtm, "<hr>");
+						readLine = readLine.replace(tagsHtm, "<hr>");
 					}else if(tagsHtm.matches(pattern2)) {
-						readLine = readLine.replaceAll(tagsHtm, "<hr>");
+						readLine = readLine.replace(tagsHtm, "<hr>");
 					}else if(tagsHtm.matches(pattern3)) {
-						readLine = readLine.replaceAll(tagsHtm, "<hr>");
+						readLine = readLine.replace(tagsHtm, "<hr>");
+					}else if(tagsHtm.matches(pattern4)) {
+						readLine = readLine.replace(tagsHtm, "<hr>");
+					}else if(tagsHtm.matches(pattern6)) {
+						readLine = readLine.replace(tagsHtm, "<hr>");
+					}else if(tagsHtm.matches(pattern7)) {
+						readLine = readLine.replace(tagsHtm, "<hr>");
 					}
+	
 					htmlMap.put(lineNum+"", readLine+"\r\n");
 				}
 				

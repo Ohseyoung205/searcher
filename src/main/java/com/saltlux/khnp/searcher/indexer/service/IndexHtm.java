@@ -46,6 +46,9 @@ public class IndexHtm {
 	@Value("${pattern1.ptns0}")
 	private String ptns0;
 	
+	@Value("${pattern4.ptns1}")
+	private String ptnPtns5;
+	
 	public IndexVo indexHtm(String domain, String fileNm, String indexName, IndexVo indexVo, int fileNum, String path, int documentId) throws Exception{
 	
 		String title1_pattern1 = ptnTitle1+Consts.TWOSPACE+".*"; // 1.0, 2.0 ,3.0 구분
@@ -74,6 +77,7 @@ public class IndexHtm {
 	    int lineNum = 0;			//라인 넘버
 	    Pattern tags = Pattern.compile(tags0);
 	    Pattern ptns = Pattern.compile(ptns0);
+	    Pattern ptns5 = Pattern.compile(ptnPtns5); //색인 시작시점 찾는 패턴
 	    Matcher m;
 	    
 	    indexVo.setStartLine(0);
@@ -91,7 +95,9 @@ public class IndexHtm {
 	        while((readLine =  bufReader.readLine()) != null ){
 	            map = new HashMap<String, String>();
 	            lineNum++;
-	            if(readLine.contains("<P CLASS=HStyle38 STYLE='line-height:150%;'>5.7<SPAN style='HWP-TAB:1;'>") ) {
+	            
+	            m = ptns5.matcher(readLine);
+	            while (m.find()) {
 	            	indexVo.setStartNum(lineNum);
 	            }
 	            
@@ -104,10 +110,10 @@ public class IndexHtm {
 	            		indexVo.setTmpStr1(m.group(0));
 	            	}
 	            	indexVo.setTmpStr(indexVo.getTmpStr().replace(indexVo.getTmpStr1(), ""));
-	            	indexVo.setTmpStr1(tags.matcher(indexVo.getTmpStr1()).replaceAll("").replaceAll("&nbsp;", ""));
+	            	indexVo.setTmpStr1(tags.matcher(indexVo.getTmpStr1()).replaceAll("").replace("&nbsp;", ""));
 	            		
 	            	m = tags.matcher(indexVo.getTmpStr());
-	                indexVo.setTagStr(m.replaceAll("").replaceAll("&nbsp;", " ").replaceAll("&#9552;", ""));
+	                indexVo.setTagStr(m.replaceAll("").replace("&nbsp;", " ").replace("&#9552;", ""));
                 	if(!indexVo.getTagStr().trim().matches(except_pattern1) && !indexVo.getTagStr().trim().matches(except_pattern2) && !indexVo.getTagStr().trim().matches(except_pattern3)
                 			&& !indexVo.getTagStr().trim().matches(except_pattern4) && !indexVo.getTagStr().trim().matches(except_pattern5) && !indexVo.getTagStr().trim().matches(except_pattern6)
                 			&& !indexVo.getTagStr().trim().matches(except_pattern7) && !indexVo.getTagStr().trim().matches(except_pattern8) && !indexVo.getTagStr().trim().matches(except_pattern9)
@@ -308,7 +314,6 @@ public class IndexHtm {
 	        return indexVo;
 	    }
 		
-//		System.out.println("resultMap.size() ::"+resultMap.size());
 		TreeMap<String, Map<String, String>> tm = new TreeMap<String, Map<String, String>>(resultMap);
 		Iterator<String> iteratorKey = tm.keySet().iterator(); // 키값 오름차순 정렬(기본)
 		List<Document> voList = new ArrayList<Document>();
