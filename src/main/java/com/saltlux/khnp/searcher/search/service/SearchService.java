@@ -164,7 +164,6 @@ public class SearchService {
 		DomainTable d = optional.get().getDomainTable();
     	String indexName = d.getIndexName();
     	
-    	System.out.println("indexName ::"+indexName);
 
     	IN2StdSearcher searcher = new IN2StdSearcher();
     	init(searcher, indexName);
@@ -218,7 +217,7 @@ public class SearchService {
     		}else if("1".equals(tmpLev) && "제 3편".equals(number0) && "1.0".equals(tmpStr1)) {
     			tmpStr4 = "3.";
     		}else if("1".equals(tmpLev) && "제 1편".equals(number0) && "B 2.0".equals(tmpStr1)){
-    			tmpStr4 = "8.2";
+    			tmpStr4 = "8.1";
     		}else if("1".equals(tmpLev) && "제 1편".equals(number0) && "B 3.0".equals(tmpStr1)){
     			tmpStr4 = "8.2";
     		}
@@ -264,37 +263,42 @@ public class SearchService {
         			HashMap<String, String> map6 = new HashMap<>();
         			map6.put("vid", "");
         			map6.put("name", "기술문서");
-        			map6.put("pid", "8.2B 1.0");
-        			map6.put("id", "8.2B 1.0");
+        			map6.put("pid", "");
+        			map6.put("id", "8.0");
         			map6.put("level", "0");
         			map6.put("order", "");
         			documents.add(map6);
         			cnt++;
-//        			HashMap<String, String> map4 = new HashMap<>();
-//        			map4.put("vid", "");
-//            		map4.put("name", searcher.getValueInDocument(i, "TITLE0"));
-//            		map4.put("pid", tmpStr4+"B 2.0");
-//            		map4.put("id", tmpStr4+"B 2.0");
-//            		map4.put("level", "1");
-//            		map4.put("order", "");
+        			HashMap<String, String> map4 = new HashMap<>();
+        			map4.put("vid", "");
+            		map4.put("name", searcher.getValueInDocument(i, "TITLE0"));
+            		map4.put("pid", "8.0");
+            		map4.put("id", tmpStr4);
+            		map4.put("level", "1");
+            		map4.put("order", "");
             		gb4 = 1;
-//            		documents.add(map4);
-//        			cnt++;
+            		documents.add(map4);
+        			cnt++;
         		}else if("1".equals(tmpLev) && "제 1편".equals(number0) && "B 3.0".equals(tmpStr1) && gb5 == 0) {
-//        			HashMap<String, String> map5 = new HashMap<>();
-//        			map5.put("vid", "");
-//        			map5.put("name", searcher.getValueInDocument(i, "TITLE0"));
-//        			map5.put("pid", tmpStr4+"B 3.0");
-//        			map5.put("id", tmpStr4+"B 3.0");
-//        			map5.put("level", "1");
-//        			map5.put("order", "");
-//            		gb5 = 1;
-//            		documents.add(map5);
-//        			cnt++;
+        			HashMap<String, String> map5 = new HashMap<>();
+        			map5.put("vid", "");
+        			map5.put("name", searcher.getValueInDocument(i, "TITLE0"));
+        			map5.put("pid", "8.0");
+        			map5.put("id", tmpStr4);
+        			map5.put("level", "1");
+        			map5.put("order", "");
+            		gb5 = 1;
+            		documents.add(map5);
+        			cnt++;
         		}
 				map.put("vid", tmpStr1);
         		map.put("name", searcher.getValueInDocument(i, "TITLE1"));
-        		map.put("pid", tmpStr4+"0");
+        		if("8.1".equals(tmpStr4) || "8.2".equals(tmpStr4)) {
+        			map.put("pid", tmpStr4);
+        		}else {
+        			map.put("pid", tmpStr4+"0");
+        		}
+        		
         		map.put("id", tmpStr4+tmpStr1);
         		map.put("order", searcher.getValueInDocument(i, "ORDERNUM"));
         	}else if(!"".equals(tmpStr1) && !"".equals(tmpStr2) && "".equals(tmpStr3)) {	// 2단계
@@ -304,6 +308,18 @@ public class SearchService {
         		map.put("id", tmpStr4+tmpStr2);
         		map.put("order", searcher.getValueInDocument(i, "ORDERNUM"));
         	}else {																			// 3단계
+        		if("".equals(tmpStr2)) {
+        			String tmp00 = tmpStr3.split(" ")[0];
+        			String tmp01 = tmpStr3.split(" ")[1];
+        			String[] tmp02 = tmp01.split("\\.");
+        			for(int j =0; j <tmp02.length-1; j++) {
+        				if(j == 0) {
+        					tmpStr2 = tmp00+" "+tmp02[j];
+        				}else {
+        					tmpStr2 = tmpStr2+"."+tmp02[j];
+        				}
+        			}
+        		}
         		map.put("vid", tmpStr3);
         		map.put("name", searcher.getValueInDocument(i, "TITLE3"));
         		map.put("pid", tmpStr4+tmpStr2);
@@ -318,7 +334,6 @@ public class SearchService {
         			if(sVid.length > bVid.length) {
         				if(!"0".equals(sVid[bVid.length])) {
         					if(!sVid[sVid.length-2].equals(bVid[bVid.length-1])) {
-//        						System.out.println("sVid[0] ::"+sVid[sVid.length-2]+"|| bVid[0] ::"+bVid[bVid.length-1]+" || length::"+bVid.length+"|| sVid.length::"+sVid.length);
         						String tmpVid = "";
         						for(int k = 0;k <sVid.length-1;k++) {
         							if(k == 0) {
@@ -330,7 +345,7 @@ public class SearchService {
         						HashMap<String, String> map7 = new HashMap<>();
         						map7.put("vid", tmpVid);
         						map7.put("name", "");
-        						map7.put("pid", tmpStr4+tmpStr2);
+        						map7.put("pid", tmpStr4+"B 2.0");
         						map7.put("id", tmpStr4+tmpVid);
         						map7.put("level", sVid.length-1+"");
         						map7.put("order", "");
