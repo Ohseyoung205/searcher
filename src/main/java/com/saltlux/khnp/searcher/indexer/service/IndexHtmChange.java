@@ -30,6 +30,9 @@ public class IndexHtmChange {
 	@Value("${pattern1.tags0}")
 	private String tags0;
 	
+	@Value("${pattern.img}")
+	private String ptnImg;
+	
 	public boolean indexHtmChange(String domain, String htmFileName) throws Exception{
 		boolean btn = false;
 		String[] fileNm = htmFileName.split(";");
@@ -39,11 +42,11 @@ public class IndexHtmChange {
 		String pattern2 = "──(.*?)──";
 		String pattern3 = "󰡈󰡈󰡈(.*?)󰡈󰡈󰡈";
 		String pattern4 = "\\\\?󰠧󰠧(.*?)?󰠧󰠧";
-		String pattern5 = "(<IMG src=(.*?).png|<IMG src=(.*?).gif|<IMG src=(.*?).jpg|<IMG src=(.*?).jpeg|<IMG src=(.*?).bmp)";
 		String pattern6 = "\\\\?󰠏󰠏(.*?)?󰠏󰠏";
 		String pattern7 = "󰠏󰠏󰠏󰠏󰠏󰠏󰠏󰠏(.*?)";
+		String pattern8 = "^[0-9]+";
 		Matcher m;
-		Pattern ptns = Pattern.compile(pattern5);
+		Pattern ptns = Pattern.compile(ptnImg);
 		try {
 			for(int i=0;i<fileNm.length; i++) {
 				HashMap<String, String> htmlMap = new LinkedHashMap<>();
@@ -74,23 +77,19 @@ public class IndexHtmChange {
 						}else {
 							imagePath1=imagePath1+"/"+imagePath[k];
 						}
-						
 					}
 				
 					m = ptns.matcher(readLine);
 					while (m.find()) {
 						String img1 = m.group();
+						img1 = img1.replace("\\", "\\\\");
 						String[] sImg = img1.split("\\\\");
-						readLine = readLine.replaceAll("<IMG src=(.*?).png", "<IMG src=\".\\\\"+sImg[sImg.length-1]);
-						readLine = readLine.replaceAll("<IMG src=(.*?).gif", "<IMG src=\".\\\\"+sImg[sImg.length-1]);
-						readLine = readLine.replaceAll("<IMG src=(.*?).jpg", "<IMG src=\".\\\\"+sImg[sImg.length-1]);
-						readLine = readLine.replaceAll("<IMG src=(.*?).jpeg", "<IMG src=\".\\\\"+sImg[sImg.length-1]);
-						readLine = readLine.replaceAll("<IMG src=(.*?).bmp", "<IMG src=\".\\\\"+sImg[sImg.length-1]);
+						readLine = readLine.replaceAll(img1, "<IMG src=\".\\\\"+sImg[sImg.length-1]);
 					}
 				
 					readLine = readLine.replaceAll("<IMG src=\".\\\\", "<IMG src=\""+imagePath1+"/");
-					
 					tagsHtm = tags.matcher(readLine).replaceAll("").replaceAll("&nbsp;", "");
+					
 					if(tagsHtm.matches(pattern0)) {
 						readLine = readLine.replace(tagsHtm, "<hr>");
 					}else if(tagsHtm.matches(pattern1)) {
@@ -111,20 +110,34 @@ public class IndexHtmChange {
 				}
 				
 				int chkNum = 0;
+				int chkTwo = 0;
+				String tmpStr = "";
 				for( Map.Entry<String, String> hElem : htmlMap.entrySet() ){
 					if(hElem.getValue().contains("<TABLE border=\"1\" cellspacing=\"0\" cellpadding=\"0\" style='border-collapse:collapse;border:none;'>")) {
 						chkNum = Integer.parseInt(hElem.getKey());
-						String key = String.valueOf(chkNum+6);
-						if(htmlMap.get(key).contains("</TABLE>")) {
-							for(int k =chkNum; k <= chkNum+6; k++) {
-								if(chkNum+6 == k) {
-									htmlMap.put(k+"", htmlMap.get(String.valueOf(k)).replaceAll("</TABLE>", ""));
+					}
+					if(hElem.getValue().contains("</TABLE>")) {
+						chkTwo = Integer.parseInt(hElem.getKey());
+						
+						boolean chkBln = true;
+						for(int l =chkNum; l < chkTwo; l++) {
+							tmpStr = tags.matcher(htmlMap.get(String.valueOf(l))).replaceAll("").replaceAll("&nbsp;", "");
+							if(!tmpStr.trim().matches(pattern8) && !"".equals(tmpStr.trim())) {
+								chkBln = false;
+								break;
+							}
+						}
+						if(chkBln) {
+							for(int j = chkNum; j <=chkTwo; j++) {
+								if(chkTwo == j) {
+									htmlMap.put(j+"", htmlMap.get(String.valueOf(j)).replaceAll("</TABLE>", ""));
 								}else {
-									htmlMap.put(k+"", "");
+									htmlMap.put(j+"", "");
 								}
 							}
 						}
 					}
+					
 				}
 				
 				bufReader.close();
@@ -136,13 +149,13 @@ public class IndexHtmChange {
 			    }
 				fos.close();
 				
-				Path filePath = Paths.get(oriFilePath);
-				//############### 파일 소유자 변경 ###############
-				UserPrincipal hostUid = filePath.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByName("saltlux");
-				Files.setOwner(filePath, hostUid);
-				//############### 파일 그룹 변경 ################
-				GroupPrincipal group =filePath.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByGroupName("saltlux");
-				Files.getFileAttributeView(filePath, PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS).setGroup(group);
+//				Path filePath = Paths.get(oriFilePath);
+//				//############### 파일 소유자 변경 ###############
+//				UserPrincipal hostUid = filePath.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByName("saltlux");
+//				Files.setOwner(filePath, hostUid);
+//				//############### 파일 그룹 변경 ################
+//				GroupPrincipal group =filePath.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByGroupName("saltlux");
+//				Files.getFileAttributeView(filePath, PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS).setGroup(group);
 				btn = true;
 			}
 		}catch(Exception e) {
