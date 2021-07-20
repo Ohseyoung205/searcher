@@ -310,14 +310,25 @@ public class SearchService {
         	}else {																			// 3단계
         		if("".equals(tmpStr2)) {
         			String tmp00 = tmpStr3.split(" ")[0];
-        			String tmp01 = tmpStr3.split(" ")[1];
-        			String[] tmp02 = tmp01.split("\\.");
-        			for(int j =0; j <tmp02.length-1; j++) {
-        				if(j == 0) {
-        					tmpStr2 = tmp00+" "+tmp02[j];
-        				}else {
-        					tmpStr2 = tmpStr2+"."+tmp02[j];
-        				}
+        			if("B".equals(tmp00)) {
+            			String tmp01 = tmpStr3.split(" ")[1];
+            			String[] tmp02 = tmp01.split("\\.");
+            			for(int j =0; j <tmp02.length-1; j++) {
+            				if(j == 0) {
+            					tmpStr2 = tmp00+" "+tmp02[j];
+            				}else {
+            					tmpStr2 = tmpStr2+"."+tmp02[j];
+            				}
+            			}
+        			}else {
+        				String[] tmp02 = tmp00.split("\\.");
+            			for(int j =0; j <tmp02.length-1; j++) {
+            				if(j == 0) {
+            					tmpStr2 = tmp02[j];
+            				}else {
+            					tmpStr2 = tmpStr2+"."+tmp02[j];
+            				}
+            			}
         			}
         		}
         		map.put("vid", tmpStr3);
@@ -333,26 +344,29 @@ public class SearchService {
         			String[] bVid = documents.get(cnt-1).get("vid").split("\\.");
         			if(sVid.length > bVid.length) {
         				if(!"0".equals(sVid[bVid.length])) {
-        					if(!sVid[sVid.length-2].equals(bVid[bVid.length-1])) {
-        						String tmpVid = "";
-        						for(int k = 0;k <sVid.length-1;k++) {
-        							if(k == 0) {
-        								tmpVid = sVid[k];
-        							}else {
-        								tmpVid =tmpVid+"."+sVid[k];
-        							}
-        						}
-        						HashMap<String, String> map7 = new HashMap<>();
-        						map7.put("vid", tmpVid);
-        						map7.put("name", "");
-        						map7.put("pid", tmpStr4+"B 2.0");
-        						map7.put("id", tmpStr4+tmpVid);
-        						map7.put("level", sVid.length-1+"");
-        						map7.put("order", "");
-        		        		documents.add(map7);
-        		        		cnt++;
+        					if(sVid.length == 3 && bVid.length == 2) {
+        						if(!sVid[sVid.length-2].equals(bVid[bVid.length-1])) {
+            						String tmpVid = "";
+            						String chkvid = "";
+            						for(int k = 0;k <sVid.length-1;k++) {
+            							if(k == 0) {
+            								tmpVid = sVid[k];
+            								chkvid = tmpVid;
+            							}else {
+            								tmpVid =tmpVid+"."+sVid[k];
+            							}
+            						}
+            						HashMap<String, String> map7 = new HashMap<>();
+            						map7.put("vid", tmpVid);
+            						map7.put("name", "");
+            						map7.put("pid", tmpStr4+chkvid+".0");
+            						map7.put("id", tmpStr4+tmpVid);
+            						map7.put("level", sVid.length-1+"");
+            						map7.put("order", "");
+            		        		documents.add(map7);
+            		        		cnt++;
+            					}
         					}
-        					
         				}
         			}
         			documents.add(map);

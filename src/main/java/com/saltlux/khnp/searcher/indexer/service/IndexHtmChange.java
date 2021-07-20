@@ -39,7 +39,7 @@ public class IndexHtmChange {
 		String pattern2 = "──(.*?)──";
 		String pattern3 = "󰡈󰡈󰡈(.*?)󰡈󰡈󰡈";
 		String pattern4 = "\\\\?󰠧󰠧(.*?)?󰠧󰠧";
-		String pattern5 = "<IMG src=(.*?).png";
+		String pattern5 = "(<IMG src=(.*?).png|<IMG src=(.*?).gif|<IMG src=(.*?).jpg|<IMG src=(.*?).jpeg|<IMG src=(.*?).bmp)";
 		String pattern6 = "\\\\?󰠏󰠏(.*?)?󰠏󰠏";
 		String pattern7 = "󰠏󰠏󰠏󰠏󰠏󰠏󰠏󰠏(.*?)";
 		Matcher m;
@@ -82,7 +82,10 @@ public class IndexHtmChange {
 						String img1 = m.group();
 						String[] sImg = img1.split("\\\\");
 						readLine = readLine.replaceAll("<IMG src=(.*?).png", "<IMG src=\".\\\\"+sImg[sImg.length-1]);
-						
+						readLine = readLine.replaceAll("<IMG src=(.*?).gif", "<IMG src=\".\\\\"+sImg[sImg.length-1]);
+						readLine = readLine.replaceAll("<IMG src=(.*?).jpg", "<IMG src=\".\\\\"+sImg[sImg.length-1]);
+						readLine = readLine.replaceAll("<IMG src=(.*?).jpeg", "<IMG src=\".\\\\"+sImg[sImg.length-1]);
+						readLine = readLine.replaceAll("<IMG src=(.*?).bmp", "<IMG src=\".\\\\"+sImg[sImg.length-1]);
 					}
 				
 					readLine = readLine.replaceAll("<IMG src=\".\\\\", "<IMG src=\""+imagePath1+"/");
