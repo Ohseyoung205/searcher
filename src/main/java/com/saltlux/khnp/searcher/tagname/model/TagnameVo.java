@@ -23,6 +23,8 @@ public class TagnameVo implements Comparator<TagnameVo>, Comparable<TagnameVo> {
 
     private String unit;
 
+    private String alias;
+
     public TagnameVo(TagnameEntity e){
         tagid = String.format("%010d", e.getTagid());
         String[] tags = e.getTagname().split("-");
@@ -30,6 +32,7 @@ public class TagnameVo implements Comparator<TagnameVo>, Comparable<TagnameVo> {
         plant = tags[0];
         description = e.getDescription();
         unit = e.getUnit();
+        alias = e.getAlias();
         cluster = -1;
     }
 
@@ -39,6 +42,7 @@ public class TagnameVo implements Comparator<TagnameVo>, Comparable<TagnameVo> {
         plant = searcher.getValueInDocument(i, TAGNAME_FIELD.PLANT.getFieldName());
         description = searcher.getValueInDocument(i, TAGNAME_FIELD.DESCRIPTION.getFieldName());
         unit = searcher.getValueInDocument(i, TAGNAME_FIELD.UNIT.getFieldName());
+        alias = searcher.getValueInDocument(i, TAGNAME_FIELD.ALIAS.getFieldName());
         cluster = Integer.valueOf(searcher.getValueInDocument(i, TAGNAME_FIELD.CLUSTER.getFieldName()));
     }
 

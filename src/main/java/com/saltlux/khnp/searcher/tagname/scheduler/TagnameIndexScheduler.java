@@ -1,5 +1,6 @@
 package com.saltlux.khnp.searcher.tagname.scheduler;
 
+import com.saltlux.dor.api.IN2StdDeleter;
 import com.saltlux.dor.api.IN2StdFieldUpdater;
 import com.saltlux.dor.api.IN2StdIndexer;
 import com.saltlux.dor.api.IN2StdSearcher;
@@ -83,6 +84,7 @@ public class TagnameIndexScheduler {
         for(TagnameEntity e : tagnameRepository.findAll()){
             TagnameVo vo = new TagnameVo(e);
             if(needUpdate(vo)){
+                delete(vo);
                 index(vo);
                 log.info("{} : add to index [{}]", indexName, vo.toString());
             }
@@ -118,11 +120,21 @@ public class TagnameIndexScheduler {
         addField(TAGNAME_FIELD.DESCRIPTION, vo.getDescription(), indexer);
         addField(TAGNAME_FIELD.PLANT, vo.getPlant(), indexer);
         addField(TAGNAME_FIELD.UNIT, vo.getUnit(), indexer);
+        addField(TAGNAME_FIELD.ALIAS, vo.getAlias(), indexer);
         indexer.addFieldFTR(TAGNAME_FIELD.INTEGRATION.name(), TAGNAME_FIELD.INTEGRATION.getFieldName(), TAGNAME_FIELD.INTEGRATION.getAnalyzer(), TAGNAME_FIELD.INTEGRATION.isIndexed(), TAGNAME_FIELD.INTEGRATION.isStored());
 
         indexer.addUpdateableField(TAGNAME_FIELD.CLUSTER.getFieldName(), vo.getCluster());
         if(!indexer.addDocument())
-            throw new RuntimeException(indexer.getLastErrorMessage());
+            log.error("index error, {}", indexer.getLastErrorMessage());
+    }
+
+    private void delete(TagnameVo vo){
+        IN2StdDeleter deleter = new IN2StdDeleter();
+        deleter.setServer(host, indexerPort);
+        deleter.setIndex(indexName);
+        deleter.setQuery(new IN2TermQuery(TAGNAME_FIELD.TAGID.getFieldName(), vo.getTagid()));
+        if(!deleter.DeleteDocument())
+            log.error("delete error {}", deleter.getLastErrorMessage());
     }
     
     private void addField(TAGNAME_FIELD field, String value, IN2StdIndexer indexer){
