@@ -41,7 +41,7 @@ public class SearchLogIndexService {
 		in2StdIndexer.addFieldTMS("TMS", "KOR", "LOGKEYWORD", true, 100);
 
 		if(!in2StdIndexer.addDocument()){
-			log.error("TERMS IDX FAIL : id=[{}], {}", vo.getLogId(), in2StdIndexer.getLastErrorMessage());
+			log.error("SEARCH LOG IDX FAIL : id=[{}], {}", vo.getLogId(), in2StdIndexer.getLastErrorMessage());
 		}
 	}
 

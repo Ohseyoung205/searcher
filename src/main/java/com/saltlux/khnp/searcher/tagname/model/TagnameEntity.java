@@ -24,4 +24,7 @@ public class TagnameEntity {
     @Column
     private String unit;
 
+    @Column
+    private String alias;
+
 }
