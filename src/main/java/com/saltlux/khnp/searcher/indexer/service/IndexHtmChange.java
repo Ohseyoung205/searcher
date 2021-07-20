@@ -33,6 +33,9 @@ public class IndexHtmChange {
 	@Value("${pattern.img}")
 	private String ptnImg;
 	
+	@Value("${pattern.number}")
+	private String ptnNum;
+	
 	public boolean indexHtmChange(String domain, String htmFileName) throws Exception{
 		boolean btn = false;
 		String[] fileNm = htmFileName.split(";");
@@ -47,6 +50,7 @@ public class IndexHtmChange {
 		String pattern8 = "^[0-9]+";
 		Matcher m;
 		Pattern ptns = Pattern.compile(ptnImg);
+		System.out.println("ptnNum ::"+ptnNum);
 		try {
 			for(int i=0;i<fileNm.length; i++) {
 				HashMap<String, String> htmlMap = new LinkedHashMap<>();
@@ -122,7 +126,7 @@ public class IndexHtmChange {
 						boolean chkBln = true;
 						for(int l =chkNum; l < chkTwo; l++) {
 							tmpStr = tags.matcher(htmlMap.get(String.valueOf(l))).replaceAll("").replaceAll("&nbsp;", "");
-							if(!tmpStr.trim().matches(pattern8) && !"".equals(tmpStr.trim())) {
+							if(!tmpStr.trim().matches(ptnNum) && !"".equals(tmpStr.trim())) {
 								chkBln = false;
 								break;
 							}
@@ -149,13 +153,13 @@ public class IndexHtmChange {
 			    }
 				fos.close();
 				
-//				Path filePath = Paths.get(oriFilePath);
-//				//############### 파일 소유자 변경 ###############
-//				UserPrincipal hostUid = filePath.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByName("saltlux");
-//				Files.setOwner(filePath, hostUid);
-//				//############### 파일 그룹 변경 ################
-//				GroupPrincipal group =filePath.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByGroupName("saltlux");
-//				Files.getFileAttributeView(filePath, PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS).setGroup(group);
+				Path filePath = Paths.get(oriFilePath);
+				//############### 파일 소유자 변경 ###############
+				UserPrincipal hostUid = filePath.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByName("saltlux");
+				Files.setOwner(filePath, hostUid);
+				//############### 파일 그룹 변경 ################
+				GroupPrincipal group =filePath.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByGroupName("saltlux");
+				Files.getFileAttributeView(filePath, PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS).setGroup(group);
 				btn = true;
 			}
 		}catch(Exception e) {

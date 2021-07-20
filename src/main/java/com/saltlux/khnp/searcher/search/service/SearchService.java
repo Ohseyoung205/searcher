@@ -309,20 +309,20 @@ public class SearchService {
         		map.put("order", searcher.getValueInDocument(i, "ORDERNUM"));
         	}else {																			// 3단계
         		if("".equals(tmpStr2)) {
-        			String tmp00 = tmpStr3.split(" ")[0];
-        			if("B".equals(tmp00)) {
-            			String tmp01 = tmpStr3.split(" ")[1];
-            			String[] tmp02 = tmp01.split("\\.");
-            			for(int j =0; j <tmp02.length-1; j++) {
+        			if(tmpStr3.contains("B")) {
+        				String tmp01 = tmpStr3.replace("B", "").trim();
+        				String[] tmp02 = tmp01.split("\\.");
+        				for(int j =0; j <tmp02.length-1; j++) {
             				if(j == 0) {
-            					tmpStr2 = tmp00+" "+tmp02[j];
+            					tmpStr2 = "B "+tmp02[j];
             				}else {
             					tmpStr2 = tmpStr2+"."+tmp02[j];
             				}
             			}
         			}else {
-        				String[] tmp02 = tmp00.split("\\.");
-            			for(int j =0; j <tmp02.length-1; j++) {
+        				String tmp01 = tmpStr3.trim();
+        				String[] tmp02 = tmp01.split("\\.");
+        				for(int j =0; j <tmp02.length-1; j++) {
             				if(j == 0) {
             					tmpStr2 = tmp02[j];
             				}else {
